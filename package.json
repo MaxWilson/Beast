@@ -16,5 +16,14 @@
     "rpg"
   ],
   "author": "Max Wilson",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "fable-compiler": "^0.5.11",
+    "source-map-loader": "^0.1.5",
+    "webpack": "^1.13.2"
+  },
+  "dependencies": {
+    "core-js": "^2.4.1",
+    "fable-core": "^0.5.5"
+  }
 }
