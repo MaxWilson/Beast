@@ -1,10 +1,9 @@
 {
   "module": "commonjs",
   "sourceMaps": true,
-  "projFile": "./source/code.fsx",
+  "projFile": "./Beast.fsproj",
   "outDir": "temp",
   "scripts": {
-    "prebuild": "npm install",
     "postbuild": "webpack"
   },
   "targets": {
