@@ -4,7 +4,9 @@
   "description": "Brain-dead simple simulator for 5E combat",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "build": "fable",
+    "watch": "fable -w --target watch"
   },
   "keywords": [
     "5e",
