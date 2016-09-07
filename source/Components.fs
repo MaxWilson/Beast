@@ -26,12 +26,11 @@ type HelloBox() as this =
     member x.componentDidMount () = ()
             
     member x.render () =        
-        R.div [ClassName "commentBox"] [
+        R.div [] [
             // Use ReactHelper.com to build a React Component from a type
             R.h2 [] [unbox x.state.data]
-            R.input [
-                Type "submit"
-                Value (U2.Case1 "OK")
+            R.button [
                 OnClick (fun _ -> x.setState { data = x.state.data + "!" })
-            ] []
+                
+            ] [unbox "OK"]
         ]
