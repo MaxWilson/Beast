@@ -17,15 +17,15 @@ type CBState = { data: string }
 type HelloBox() as this =
     inherit React.Component<unit, CBState>()
     do this.state <- { data = "Hello world!" }
-    
+
     member x.handleSubmit (e: FormEvent) =
         let msg  = x.state.data
         x.setState { data = msg + "!" }
         e.preventDefault()
 
     member x.componentDidMount () = ()
-            
-    member x.render () =        
+
+    member x.render () =
         R.div [ClassName "commentBox"] [
             // Use ReactHelper.com to build a React Component from a type
             R.h2 [] [unbox x.state.data]
