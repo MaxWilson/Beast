@@ -1,5 +1,6 @@
 node_modules
 temp
+out
 public/bundle*
 build
 bin

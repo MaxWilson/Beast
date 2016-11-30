@@ -12,11 +12,15 @@ module R = Fable.Helpers.React
 open R.Props
 open Fable.Import.React
 
+[<Pojo>]
 type CBState = { data: string }
 
-type HelloBox() as this =
-    inherit React.Component<unit, CBState>()
-    do this.state <- { data = "Hello world!" }
+[<Pojo>]
+type CBProps = { nothing: int }
+
+type HelloBox(props: CBProps) as this =
+    inherit React.Component<CBProps, CBState>(props)
+    do this.setInitState({ data = "Hello world!" })
 
     member x.handleSubmit (e: FormEvent) =
         let msg  = x.state.data
@@ -28,7 +32,7 @@ type HelloBox() as this =
     member x.render () =
         R.div [ClassName "commentBox"] [
             // Use ReactHelper.com to build a React Component from a type
-            R.h2 [] [unbox x.state.data]
+            R.text [] [unbox x.state.data]
             R.input [
                 Type "submit"
                 Value (U2.Case1 "OK")

@@ -22,6 +22,8 @@
   "devDependencies": {
     "fable-compiler": "^0.7.16",
     "fable-core": "^0.7.11",
+    "fable-react": "^0.7.9",
+    "rollup": "^0.36.4",
     "source-map-loader": "^0.1.5",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.16.2"
@@ -29,8 +31,6 @@
   "dependencies": {
     "core-js": "^2.4.1",
     "fable-core": "^0.7.11",
-    "fable-import-express": "0.0.11",
-    "fable-import-react": "^0.5.2",
     "marked": "^0.3.6",
     "react": "^15.3.1",
     "react-dom": "^15.3.1"

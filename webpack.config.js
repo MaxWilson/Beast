@@ -3,7 +3,7 @@ var webpack = require("webpack");
 
 var cfg = {
   entry: [
-    "./temp/source/main.js"
+    "./out/bundle.js"
   ],
   output: {
     path: path.join(__dirname, "publish"),

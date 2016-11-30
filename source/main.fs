@@ -12,6 +12,6 @@ open Components
 Node.require.Invoke("core-js") |> ignore
 
 ReactDom.render(
-    R.com<HelloBox,_,_> () [],
+    R.com<HelloBox,_,_> {nothing=0} [],
     Browser.document.getElementById "content")
 |> ignore

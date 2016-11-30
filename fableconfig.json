@@ -2,7 +2,9 @@
   "module": "commonjs",
   "sourceMaps": true,
   "projFile": "./Beast.fsproj",
-  "outDir": "temp",
+  "refs": {
+        "Fable.Core": "fable-core"
+  },
   "scripts": {
     "postbuild-once": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js --colors --hot --config webpack.dev.config --content-base public/"
   },
@@ -17,6 +19,15 @@
         "postbuild-once": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js --colors --hot --config webpack.dev.config --content-base public/"
       },
       "watch": true
+    }
+  },
+  "rollup": {
+    "entry": "./source/main.js",
+    "dest": "./out/bundle.js",
+    "external": ["react", "react-dom"],
+    "globals": {
+        "react": "React",
+        "react-dom": "ReactDOM"
     }
   }
 }

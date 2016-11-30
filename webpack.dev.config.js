@@ -6,7 +6,7 @@ var cfg = {
   entry: [
     'webpack/hot/dev-server',
     'webpack-dev-server/client?http://localhost:8080',
-    "./temp/source/main.js"
+    "./out/bundle.js"
   ],
   output: {
     path: path.join(__dirname, "public"),

@@ -37,6 +37,9 @@
     <Reference Include="Fable.Core">
       <HintPath>node_modules\fable-core\Fable.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Fable.React">
+      <HintPath>node_modules\fable-react\Fable.React.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -47,9 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="public\index.html" />
-    <Compile Include="node_modules/fable-import-express/Fable.Import.Express.fs" />
-    <Compile Include="node_modules/fable-import-react/Fable.Import.React.fs" />
-    <Compile Include="node_modules/fable-import-react/Fable.Helpers.React.fs" />
     <Compile Include="source\Models.fs" />
     <Compile Include="source\Components.fs" />
     <Compile Include="source\main.fs" />
