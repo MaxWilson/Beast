@@ -1,0 +1,1 @@
+npm run build && (git branch -D gh-pages || echo "First init") && git checkout -b gh-pages && (robocopy /s public . || echo "copied files") && git add . && git add -f bundle.js && git commit -a -m "Publishing" && git push origin gh-pages -f && git checkout master

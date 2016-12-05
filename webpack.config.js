@@ -6,7 +6,7 @@ var cfg = {
     "./out/bundle.js"
   ],
   output: {
-    path: path.join(__dirname, "publish"),
+    path: path.join(__dirname, "public"),
     filename: "bundle.js"
   },
   plugins: [

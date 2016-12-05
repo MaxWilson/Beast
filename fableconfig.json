@@ -11,6 +11,7 @@
   "targets": {
     "prod": {
       "scripts": {
+        "postbuild": "webpack -p",
         "postbuild-once": ""
       },
       "production": true
