@@ -2,6 +2,7 @@ node_modules
 temp
 out
 public/bundle*
+public/css
 *.js
 *.js.map
 build

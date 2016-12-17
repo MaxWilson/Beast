@@ -50,6 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="public\index.html" />
+    <None Include="public\Beast\index.html" />
+    <None Include="public\FractalCaverns\index.html" />
+    <None Include="public\MapEdit\index.html" />
     <Compile Include="source\Models.fs" />
     <Compile Include="source\Components.fs" />
     <Compile Include="source\main.fs" />
