@@ -25,10 +25,9 @@
     "fable-core": "^0.7.15",
     "fable-react": "^0.7.12",
     "node-sass": "^4.0.0",
-    "rollup": "^0.36.4",
     "source-map-loader": "^0.1.5",
-    "webpack": "^1.14.0",
-    "webpack-dev-server": "^1.16.2"
+    "webpack": "^2.2.0-rc.3",
+    "webpack-dev-server": "^2.2.0-rc.0"
   },
   "dependencies": {
     "core-js": "^2.4.1",

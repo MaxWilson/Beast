@@ -3,7 +3,7 @@ var webpack = require("webpack");
 
 var cfg = {
   entry: [
-    "./out/bundle.js"
+    "./out/source/main.js"
   ],
   output: {
     path: path.join(__dirname, "public"),
@@ -17,8 +17,9 @@ var cfg = {
     })
   ],
   module: {
-    preLoaders: [
+    rules: [
       {
+        enforce: 'pre',
         test: /\.js$/,
         exclude: /node_modules/,
         loader: "source-map-loader"

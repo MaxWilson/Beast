@@ -4,17 +4,16 @@ var webpack = require("webpack");
 var cfg = {
   devtool: "source-map",
   entry: [
-    'webpack/hot/dev-server',
-    'webpack-dev-server/client?http://localhost:8080',
-    "./out/bundle.js"
+    "./out/source/main.js"
   ],
   output: {
     path: path.join(__dirname, "public"),
     filename: "bundle.js"
   },
   module: {
-    preLoaders: [
+    rules: [
       {
+        enforce: 'pre',
         test: /\.js$/,
         exclude: /node_modules/,
         loader: "source-map-loader"
