@@ -12,6 +12,10 @@ open Components
 Node.require.Invoke("core-js") |> ignore
 
 ReactDom.render(
-    R.com<HelloBox,_,_> {nothing=0} [],
+    R.div [] [
+        R.h1 [] [R.str "BEAST 5E"]
+        R.h3 [] [R.str "Brain-dead-simple Simulator Tool for 5E combats"]
+        R.text [] [R.str "placeholder"]
+        ],
     Browser.document.getElementById "content")
 |> ignore
