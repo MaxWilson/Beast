@@ -22,7 +22,7 @@
   "license": "ISC",
   "devDependencies": {
     "css-loader": "^0.26.1",
-    "fable-compiler": "^0.7.22",
+    "fable-compiler": "^0.7.24",
     "fable-core": "^0.7.15",
     "fable-react": "^0.7.12",
     "node-sass": "^4.0.0",
