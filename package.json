@@ -7,7 +7,7 @@
     "test": "test",
     "build": "fable --target prod",
     "watch": "fable -w --target watch",
-    "sass": "node-sass sass -o public/css"
+    "sass": "node-sass sass -o out/css"
   },
   "keywords": [
     "5e",
@@ -21,11 +21,13 @@
   "author": "Max Wilson",
   "license": "ISC",
   "devDependencies": {
+    "css-loader": "^0.26.1",
     "fable-compiler": "^0.7.22",
     "fable-core": "^0.7.15",
     "fable-react": "^0.7.12",
     "node-sass": "^4.0.0",
     "source-map-loader": "^0.1.5",
+    "style-loader": "^0.13.1",
     "webpack": "^2.2.0-rc.3",
     "webpack-dev-server": "^2.2.0-rc.0"
   },

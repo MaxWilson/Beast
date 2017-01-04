@@ -1,4 +1,4 @@
-module Beast
+﻿module Beast
 
 open System
 open Fable.Core
