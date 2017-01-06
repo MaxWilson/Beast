@@ -22,10 +22,10 @@
   "license": "ISC",
   "devDependencies": {
     "css-loader": "^0.26.1",
-    "fable-compiler": "^0.7.24",
-    "fable-core": "^0.7.15",
-    "fable-react": "^0.7.12",
-    "node-sass": "^4.0.0",
+    "fable-compiler": "^0.7.25",
+    "fable-core": "^0.7.18",
+    "fable-react": "^0.7.14",
+    "node-sass": "^4.1.1",
     "source-map-loader": "^0.1.5",
     "style-loader": "^0.13.1",
     "webpack": "^2.2.0-rc.3",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "core-js": "^2.4.1",
-    "fable-core": "^0.7.15",
+    "fable-core": "^0.7.18",
     "marked": "^0.3.6",
     "react": "^15.4.1",
     "react-dom": "^15.4.1"
