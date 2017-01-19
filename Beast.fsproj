@@ -52,6 +52,7 @@
     <None Include="sass\app.sass" />
     <None Include="public\index.html" />
     <None Include="public\Beast\index.html" />
+    <None Include="public\AbstractDungeoneering\index.html" />
     <None Include="public\FractalCaverns\index.html" />
     <None Include="public\MapEdit\index.html" />
     <Compile Include="source\Util.fs" />
@@ -59,6 +60,7 @@
     <Compile Include="source\Components.fs" />
     <Compile Include="source\Root.fs" />
     <Compile Include="source\Beast.fs" />
+    <Compile Include="source\AbstractDungeoneering.fs" />
     <None Include="Script.fsx" />
     <None Include="scratch\explore.fsx" />
   </ItemGroup>
