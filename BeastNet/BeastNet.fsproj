@@ -5,41 +5,35 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>50609e88-b868-422d-89e7-9e090ab47845</ProjectGuid>
+    <ProjectGuid>30a7d94d-bd88-401e-9698-5f6a7d425f81</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Beast</RootNamespace>
-    <AssemblyName>Beast</AssemblyName>
+    <RootNamespace>BeastNet</RootNamespace>
+    <AssemblyName>BeastNet</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Beast</Name>
+    <Name>BeastNet</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
-    <OutputPath>bin</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Beast.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\BeastNet.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
-    <OutputPath>bin</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Beast.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\BeastNet.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fable.Core">
-      <HintPath>node_modules\fable-core\Fable.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Fable.React">
-      <HintPath>node_modules\fable-react\Fable.React.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -49,18 +43,16 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="sass\app.sass" />
-    <None Include="public\index.html" />
-    <None Include="public\Beast\index.html" />
-    <None Include="public\FractalCaverns\index.html" />
-    <None Include="public\MapEdit\index.html" />
-    <Compile Include="source\Util.fs" />
-    <Compile Include="source\Models.fs" />
-    <Compile Include="source\Components.fs" />
-    <Compile Include="source\Root.fs" />
-    <Compile Include="source\Beast.fs" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Library1.fs" />
     <None Include="Script.fsx" />
-    <None Include="scratch\explore.fsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Beast.fsproj">
+      <Name>Beast</Name>
+      <Project>{50609e88-b868-422d-89e7-9e090ab47845}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

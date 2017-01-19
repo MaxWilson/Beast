@@ -3,6 +3,7 @@ temp
 out
 public/bundle*
 public/css
+packages
 *.js
 *.js.map
 build

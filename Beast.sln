@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Beast", "Beast.fsproj", "{50609E88-B868-422D-89E7-9E090AB47845}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BeastNet", "BeastNet\BeastNet.fsproj", "{30A7D94D-BD88-401E-9698-5F6A7D425F81}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BeastNetTests", "BeastNetTests\BeastNetTests.fsproj", "{6F08F86B-EC91-4F0B-9655-17296AFB981D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{50609E88-B868-422D-89E7-9E090AB47845}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50609E88-B868-422D-89E7-9E090AB47845}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50609E88-B868-422D-89E7-9E090AB47845}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A7D94D-BD88-401E-9698-5F6A7D425F81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A7D94D-BD88-401E-9698-5F6A7D425F81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A7D94D-BD88-401E-9698-5F6A7D425F81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A7D94D-BD88-401E-9698-5F6A7D425F81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F08F86B-EC91-4F0B-9655-17296AFB981D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F08F86B-EC91-4F0B-9655-17296AFB981D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F08F86B-EC91-4F0B-9655-17296AFB981D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F08F86B-EC91-4F0B-9655-17296AFB981D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

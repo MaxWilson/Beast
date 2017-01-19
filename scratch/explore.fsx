@@ -3,5 +3,3 @@
 #load @"..\source\Models.fs"
 #load @"..\source\Components.fs"
 open Models
-let x = Encounter(Creatures=[|Creature(Name="Bob")|])
-printfn "%A" x
