@@ -15,7 +15,7 @@ ReactDom.render(
     R.div [] [
         R.h1 [] [R.str "BEAST 5E"]
         R.h3 [] [R.str "Brain-dead-simple Simulator Tool for 5E combats"]
-        R.text [] [R.str "placeholder"]
+        R.text [] [PickList ["Gargoyle";"Banderhobb";"Bandersnatch";"Kzin"]]
         ],
     Browser.document.getElementById "content")
 |> ignore

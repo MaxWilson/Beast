@@ -39,3 +39,8 @@ type HelloBox(props: CBProps) as this =
                 OnClick (fun _ -> x.setState { data = x.state.data + "!" })
             ] []
         ]
+
+let PickList options =
+    R.div [] (
+        options |> List.map (fun o -> R.div [] [R.button [] [R.str o]])
+        )
