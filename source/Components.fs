@@ -40,7 +40,22 @@ type HelloBox(props: CBProps) as this =
             ] []
         ]
 
-let PickList options =
-    R.div [] (
-        options |> List.map (fun o -> R.div [] [R.button [] [R.str o]])
-        )
+[<Pojo>]
+type PickListProps<'t> =
+    { options: 't list; renderToString: 't -> string }
+[<Pojo>]
+type PickListState<'t> =
+    { selected: 't list }
+
+type PickList<'t>(props: PickListProps<'t>) as this =
+    inherit Component<PickListProps<'t>, PickListState<'t>>(props)
+    do this.setInitState({ selected = []})
+    member x.render() =
+        R.div [] [
+            R.input [DefaultValue (U2.Case1 "")] []
+            R.div [] (
+                props.options |> List.map (fun o -> R.div [] [R.button [] [R.str (props.renderToString o)]])
+                )
+            R.div [] [R.str (JsInterop.toJson props.options)]
+            ]
+
