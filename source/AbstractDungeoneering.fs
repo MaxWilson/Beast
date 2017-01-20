@@ -15,7 +15,7 @@ Node.require.Invoke("core-js") |> ignore
 Node.require.Invoke("../css/app.css") |> ignore
 
 type Difficulty = Easy | Vigorous | Exciting | Epic
-type Effect = Gold of int | XP of int | LoseGold | Item of string
+type Effect = Gold of int | XP of int | LoseGold | LoseItems | Item of string
 let level targetLevel actualLevel =
     if targetLevel < actualLevel then
         false // not killed
@@ -37,19 +37,26 @@ let easyTable : Table =
 let vigorousTable : Table =
     setCounters [
         5, level 4, "Clean out a meenlock infestation", [XP 500]
-        3, level 5, "Loot a wight's tomb", [Gold 500; XP 1000; Item "Silver mace"]
-        2, level 5, "Loot a wight's tomb", [Gold 500; XP 1000; Item "Jade Dagger +1"]
-        3, level 6, "Slay a mummy", [Gold 5000; XP 1000; Item "Mail shirt +1"]
-        1, level 5, "Raise a dragon hatchling from an egg", [XP 500; Item "Dragon wyrmling"]
+        3, level 5, "Loot a wight's tomb", [Gold 1800; XP 1000; Item "Silver mace"]
+        2, level 5, "Loot a wight's tomb", [Gold 1800; XP 1000; Item "Jade Dagger +1"]
+        3, level 6, "Slay a mummy", [Gold 5000; XP 2000; Item "Mail shirt +1"]
+        1, level 5, "Raise a dragon hatchling from an egg", [XP 1500; Item "Dragon wyrmling"]
         10, level 5, "Escort a merchant safely through pirate-infested waters", [Gold 1000; XP 300]
+        4, level 5, "Stop a bank robbery", [Gold 100; XP 1000]
+        2, level 7, "Save a close friend from Intellect Devourers", [Gold 1000; XP 2000]
+        8, level 4, "Defend orphanage from zombie horde", [XP 1000]
+        2, level 8, "Defend orphanage from clan of weretiger ninjas", [XP 4000]
     ]
 let excitingTable : Table =
     setCounters [
         1, level 9, "Fight off a githyanki war-band", [Gold 4000; XP 9000; Item "Potion of dragon control"]
-        5, level 8, "Solve a murder (vampires did it) and apprehend the murderer", [Gold 1000; XP 8000]
-        2, level 7, "Save the king from doppelganger kidnapping", [Gold 800; XP 4000; Item "Ancestral longsword +1" ]
+        5, level 12, "Solve a murder (vampires did it) and apprehend the murderer", [Gold 1000; XP 8000]
+        2, level 13, "Save the king from doppelganger kidnapping", [Gold 800; XP 4000; Item "Ancestral longsword +2" ]
         10, level 6, "Repel small orcish invasion", [Gold 1000; XP 4000]
         1, level 1, "A thief has stolen your riches!", [LoseGold]
+        3, level 12, "Ram and board a neogi deathspider; kill all the umber hulks and free all the slaves", [Gold 20000; XP 12000]
+        2, level 0, "Fall in love with wealthy heir/heiress", [Gold 10000]
+        1, level 10, "Fall in love with wealthy heir/heiress who turns out to be a Rakshasa", [XP 6000]
     ]
 let epicTable : Table =
     setCounters [
@@ -58,6 +65,9 @@ let epicTable : Table =
         20, level 16, "Repel massive orcish invasion", [Gold 8000; XP 15000]
         4, level 17, "Fight off Githyanki war-band led by knights", [Gold 20000; XP 25000; Item "Silver Greatsword of Gith +3"]
         1, level 25, "Slay legendary red dragon and claim its hoard", [Gold 200000; XP 50000; Item "Stormcleaver artifact"; Item "Plate armor of invulnerability"]
+        2, level 1, "A thief has stolen your riches and magic items!", [LoseGold; LoseItems]
+        3, level 19, "Travel into the future to topple mind flayer civilization", [XP 20000]
+        1, level 0, "Negotiate peace treat with space-elves", [XP 10000]
     ]
 
 let recomputeLevel =
@@ -159,8 +169,14 @@ let rollOn (table: Table) (state: ADState) =
         state
     else
         let lastCount = (table |> List.last).range |> snd
-        let roll = random lastCount
-        let adventure = table |> List.find (fun { range = (lower, upper) } -> lower <= roll && roll <= upper)
+        let rec findAdventure() =
+            let roll = random lastCount
+            let adventure = table |> List.find (fun { range = (lower, upper) } -> lower <= roll && roll <= upper)
+            // Don't do the same adventure twice in a row
+            match state.log with
+            | prev::_ when adventure.description = prev -> findAdventure()
+            | _ -> adventure
+        let adventure = findAdventure()
         let state = if adventure.fatality state.level then
                         { state with isAlive = false; log = adventure.description + " (killed)" :: state.log }
                     else
@@ -168,6 +184,7 @@ let rollOn (table: Table) (state: ADState) =
                             | Gold(x) -> { state with gold = state.gold + x }
                             | XP(x) -> { state with xp = state.xp + x }
                             | LoseGold -> { state with gold = 0 }
+                            | LoseItems -> { state with items = [] }
                             | Item item -> { state with items = item :: state.items }
                         adventure.effects |> List.fold applyEffects { state with log = adventure.description :: state.log }
         let state = { state with level = recomputeLevel state.xp }
