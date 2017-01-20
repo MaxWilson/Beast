@@ -156,6 +156,7 @@ type ADState =
         statMethod: StatMethod
         stats: Stats
         race: Race
+        age: double
         isAlive: bool
         level: int
         xp: int
@@ -187,7 +188,7 @@ let rollOn (table: Table) (state: ADState) =
                             | LoseItems -> { state with items = [] }
                             | Item item -> { state with items = item :: state.items }
                         adventure.effects |> List.fold applyEffects { state with log = adventure.description :: state.log }
-        let state = { state with level = recomputeLevel state.xp }
+        let state = { state with level = recomputeLevel state.xp; age = state.age + 0.35 }
         state
 
 let racePicker currentRace pick =
@@ -211,13 +212,13 @@ type AbstractDungeon() as this =
             statMethod = meth
             stats = rollStats meth
             race = if Option.isSome prev then prev.Value.race else races.Head
-            level = 1; xp = 0; gold = 0; items = []; log = []; isAlive = true; }
+            level = 1; xp = 0; gold = 0; items = []; log = []; isAlive = true; age = 18. }
     do this.setInitState(init None)
     let doAdventure level =
         let t = match level with | Easy -> easyTable | Daring -> daringTable | Exciting -> excitingTable | Epic -> epicTable
         this.setState (rollOn t this.state)
     member this.render() =
-        let descr = (sprintf "%sYou are level %d with %d XP and %d gold" (if this.state.isAlive then "" else "(Dead) ") this.state.level this.state.xp this.state.gold)
+        let descr = (sprintf "%sYou are level %d and %d years old, with %d XP and %d gold" (if this.state.isAlive then "" else "(Dead) ") this.state.level (int this.state.age) this.state.xp this.state.gold)
         let descr = if this.state.items.IsEmpty then descr
                     else System.String.Join(" and ", descr :: this.state.items)
         R.div [] [
