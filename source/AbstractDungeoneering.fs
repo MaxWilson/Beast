@@ -117,6 +117,7 @@ let races = [
     "Elf (High)", { Stats.Empty with Dex = 2; Int = 1; Special = Some "Darkvision, Wizard cantrip" }
     "Dwarf (Mountain)", { Stats.Empty with Str = 2; Con = 2; Special = Some "Darkvision, Medium Armor proficiency, poison resistance" }
     "Halfling (Lightfoot)", { Stats.Empty with Dex = 2; Cha = 1; Special = Some "Lucky" }
+    "None/Other", Stats.Empty
     ]
 type StatMethod = M3d6 | M4d6k3
 let rollStats m =
