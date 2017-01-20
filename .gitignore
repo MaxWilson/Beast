@@ -4,8 +4,8 @@ out
 public/bundle*
 public/css
 packages
-*.js
-*.js.map
+public/*.js
+public/*.js.map
 build
 bin
 obj
