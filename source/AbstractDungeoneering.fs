@@ -50,7 +50,11 @@ let daringTable : Table =
 let excitingTable : Table =
     setCounters [
         1, level 9, "Fight off a githyanki war-band", [Gold 4000; XP 9000; Item "Potion of dragon control"]
-        5, level 12, "Solve a murder (vampires did it) and apprehend the murderer", [Gold 1000; XP 8000]
+        3, level 12, "Solve a murder (vampires did it) and apprehend the murderer", [Gold 1000; XP 8000]
+        3, level 8, "Solve a murder (the thieves' guild did it) and apprehend the murderer", [Gold 1000; XP 4000]
+        3, level 9, "Solve a murder (a mind flayer did it) and apprehend the murderer", [Gold 1000; XP 5000]
+        3, level 7, "Solve a murder (a druid did it) and apprehend the murderer", [Gold 1000; XP 3000]
+        5, level 0, "Solve a murder (a family member did it) and apprehend the murderer", [Gold 1000; XP 2000]
         2, level 13, "Save the king from doppelganger kidnapping", [Gold 800; XP 4000; Item "Ancestral longsword +2" ]
         10, level 6, "Repel small orcish invasion", [Gold 1000; XP 4000]
         1, level 1, "A thief has stolen your riches!", [LoseGold]
