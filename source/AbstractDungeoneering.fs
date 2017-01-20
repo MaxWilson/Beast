@@ -4,7 +4,7 @@ open System
 open Fable.Core
 open Fable.Import
 module R = Fable.Helpers.React
-
+open R.Props
 // Check components.fs to see how to build React components from F#
 open Components
 open Fable.Import.React
@@ -12,21 +12,7 @@ open Util
 
 // Polyfill for ES6 features in old browsers
 Node.require.Invoke("core-js") |> ignore
-
-
-[<Pojo>]
-type ADProps =
-    { x: unit }
-[<Pojo>]
-type ADState =
-    {
-        isAlive: bool
-        level: int
-        xp: int
-        gold: int
-        items: string list
-        log: string list
-    }
+Node.require.Invoke("../css/app.css") |> ignore
 
 type Difficulty = Easy | Vigorous | Exciting | Epic
 type Effect = Gold of int | XP of int | LoseGold | Item of string
@@ -99,6 +85,74 @@ let recomputeLevel =
     ]
     fun xp ->
         levelMins |> List.findIndexBack (flip (<=) xp) |> (+) 1
+
+type Stats = {
+    Str: int
+    Dex: int
+    Con: int
+    Int: int
+    Wis: int
+    Cha: int
+    Special: string option
+    }
+    with
+    member this.Add that = {
+        Str = this.Str + that.Str
+        Dex = this.Dex + that.Dex
+        Con = this.Con + that.Con
+        Int = this.Int + that.Int
+        Wis = this.Wis + that.Wis
+        Cha = this.Cha + that.Cha
+        Special = match this.Special, that.Special with
+                  | None, None -> None
+                  | Some(_) as x, None | None, (Some(_) as x) -> x
+                  | Some(x), Some(y) -> Some(x + " and " + "y")
+        }
+    static member Empty = { Str = 0; Dex = 0; Con = 0; Int = 0; Wis = 0; Cha = 0; Special = None }
+type Race = string * Stats
+let races = [
+    "Human", { Str = 1; Dex = 1; Con = 1; Int = 1; Wis = 1; Cha = 1; Special = None }
+    "Human (Machakan)", { Stats.Empty with Dex = 1; Con = 1; Special = Some "Mobile" }
+    "Human (Valerian)", { Stats.Empty with Str = 2; Con = 1; Special = Some "Heavy Armor Master" }
+    "Elf (High)", { Stats.Empty with Dex = 2; Int = 1; Special = Some "Darkvision, Wizard cantrip" }
+    "Dwarf (Mountain)", { Stats.Empty with Str = 2; Con = 2; Special = Some "Darkvision, Medium Armor proficiency, poison resistance" }
+    "Halfling (Lightfoot)", { Stats.Empty with Dex = 2; Cha = 1; Special = Some "Lucky" }
+    ]
+type StatMethod = M3d6 | M4d6k3
+let rollStats m =
+    let roll() =
+        match m with
+        | M3d6 -> random(6) + random(6) + random(6)
+        | M4d6k3 ->
+            let arr = [random(6);random(6);random(6);random(6)] |> List.sortDescending
+            arr |> List.take 3 |> List.sum
+    {
+        Str = roll()
+        Dex = roll()
+        Con = roll()
+        Int = roll()
+        Wis = roll()
+        Cha = roll()
+        Special = None
+        }
+
+[<Pojo>]
+type ADProps =
+    { x: unit }
+[<Pojo>]
+type ADState =
+    {
+        statMethod: StatMethod
+        stats: Stats
+        race: Race
+        isAlive: bool
+        level: int
+        xp: int
+        gold: int
+        items: string list
+        log: string list
+    }
+
 let rollOn (table: Table) (state: ADState) =
     if not state.isAlive then
         state
@@ -118,10 +172,29 @@ let rollOn (table: Table) (state: ADState) =
         let state = { state with level = recomputeLevel state.xp }
         state
 
+let racePicker currentRace pick =
+    R.div [] (
+        races |> List.map (fun r -> R.button [OnClick (fun _ -> pick r); ClassName (if currentRace = r then "selected" else "")] [R.str (fst r)])
+        )
+let statMethodPicker currentMeth pick =
+    R.div [] [
+            R.button [ClassName (if currentMeth = M3d6 then "selected" else ""); OnClick (fun _ -> pick M3d6)] [R.str "Roll 3d6"]
+            R.button [ClassName (if currentMeth = M4d6k3 then "selected" else ""); OnClick (fun _ -> pick M4d6k3)] [R.str "Roll 4d6 drop lowest"]
+            ]
+let statDisplay stats =
+    let str = sprintf "Str %d\nDex %d\nCon %d\nInt %d\nWis %d\nCha %d%s" stats.Str stats.Dex stats.Con stats.Int stats.Wis stats.Cha (if stats.Special.IsSome then "\n" + stats.Special.Value else "")
+    str.Split('\n') |> List.ofArray |> List.map (fun txt -> R.div [] [R.str txt])
+
 type AbstractDungeon() as this =
     inherit Component<obj, ADState>(obj())
-    let init = { level = 1; xp = 0; gold = 0; items = []; log = []; isAlive = true}
-    do this.setInitState(init)
+    let init(prev) =
+        let meth = if Option.isSome prev then prev.Value.statMethod else M3d6
+        {
+            statMethod = meth
+            stats = rollStats meth
+            race = if Option.isSome prev then prev.Value.race else races.Head
+            level = 1; xp = 0; gold = 0; items = []; log = []; isAlive = true; }
+    do this.setInitState(init None)
     let doAdventure level =
         let t = match level with | Easy -> easyTable | Vigorous -> vigorousTable | Exciting -> excitingTable | Epic -> epicTable
         this.setState (rollOn t this.state)
@@ -130,15 +203,19 @@ type AbstractDungeon() as this =
         let descr = if this.state.items.IsEmpty then descr
                     else System.String.Join(" and ", descr :: this.state.items)
         R.div [] [
-            R.div [] [
+            statMethodPicker this.state.statMethod (fun picked -> this.setState (init (Some { this.state with statMethod = picked })))
+            R.div [] (List.append
+                (statDisplay (this.state.stats.Add(snd this.state.race)))
+                [
+                racePicker this.state.race (fun picked -> this.setState { this.state with race = picked })
                 R.text [] [R.str descr]
-                ]
+                ])
             R.div[] [
                 R.button [R.Props.OnClick (fun e -> doAdventure Easy)][R.str "Go on an easy adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Vigorous)][R.str "Go on a vigorous adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Exciting)][R.str "Go on an exciting and difficult adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Epic)][R.str "Go on an epic and deadly adventure"]
-                R.button [R.Props.OnClick (fun e -> this.setState init)][R.str "Reset (new character)"]
+                R.button [R.Props.OnClick (fun e -> this.setState (init(Some this.state)))][R.str "Reset (new character)"]
                 ]
             R.div [] (
                 R.h4 [] [R.str "Your adventures so far:"] :: (this.state.log |> List.map (fun entry -> R.p [] [R.text [] [R.str entry]]))
