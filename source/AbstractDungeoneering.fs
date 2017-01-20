@@ -14,7 +14,7 @@ open Util
 Node.require.Invoke("core-js") |> ignore
 Node.require.Invoke("../css/app.css") |> ignore
 
-type Difficulty = Easy | Vigorous | Exciting | Epic
+type Difficulty = Easy | Daring | Exciting | Epic
 type Effect = Gold of int | XP of int | LoseGold | LoseItems | Item of string
 let level targetLevel actualLevel =
     if targetLevel < actualLevel then
@@ -34,7 +34,7 @@ let easyTable : Table =
         2, level 3, "Patrol for orcs", [Gold 50; XP 300]
         1, level 0, "Help a starving widow find food", [XP 300]
     ]
-let vigorousTable : Table =
+let daringTable : Table =
     setCounters [
         5, level 4, "Clean out a meenlock infestation", [XP 500]
         3, level 5, "Loot a wight's tomb", [Gold 1800; XP 1000; Item "Silver mace"]
@@ -214,7 +214,7 @@ type AbstractDungeon() as this =
             level = 1; xp = 0; gold = 0; items = []; log = []; isAlive = true; }
     do this.setInitState(init None)
     let doAdventure level =
-        let t = match level with | Easy -> easyTable | Vigorous -> vigorousTable | Exciting -> excitingTable | Epic -> epicTable
+        let t = match level with | Easy -> easyTable | Daring -> daringTable | Exciting -> excitingTable | Epic -> epicTable
         this.setState (rollOn t this.state)
     member this.render() =
         let descr = (sprintf "%sYou are level %d with %d XP and %d gold" (if this.state.isAlive then "" else "(Dead) ") this.state.level this.state.xp this.state.gold)
@@ -230,7 +230,7 @@ type AbstractDungeon() as this =
                 ])
             R.div[] [
                 R.button [R.Props.OnClick (fun e -> doAdventure Easy)][R.str "Go on an easy adventure"]
-                R.button [R.Props.OnClick (fun e -> doAdventure Vigorous)][R.str "Go on a vigorous adventure"]
+                R.button [R.Props.OnClick (fun e -> doAdventure Daring)][R.str "Go on a daring adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Exciting)][R.str "Go on an exciting and difficult adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Epic)][R.str "Go on an epic and deadly adventure"]
                 R.button [R.Props.OnClick (fun e -> this.setState (init(Some this.state)))][R.str "Reset (new character)"]
