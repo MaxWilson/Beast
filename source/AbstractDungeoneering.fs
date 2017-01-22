@@ -151,6 +151,9 @@ let races = [
     "Human (Valerian)", { Stats.Empty with Str = 2; Con = 1; Special = Some "Heavy Armor Master" }
     "Elf (High)", { Stats.Empty with Dex = 2; Int = 1; Special = Some "Darkvision, Wizard cantrip" }
     "Dwarf (Mountain)", { Stats.Empty with Str = 2; Con = 2; Special = Some "Darkvision, Medium Armor proficiency, poison resistance" }
+    "Gnome (Rock)", { Stats.Empty with Int = 2; Con = 1; Special = Some "Darkvision, partial magic resistance, clockwork toys" }
+    "Gnome (Forest)", { Stats.Empty with Int = 2; Dex = 1; Special = Some "Darkvision, partial magic resistance, talking to animals" }
+    "Half-orc", { Stats.Empty with Str = 2; Con = 1; Special = Some "Darkvision, hard to kill, improved crits" }
     "Halfling (Lightfoot)", { Stats.Empty with Dex = 2; Cha = 1; Special = Some "Lucky" }
     "None/Other", Stats.Empty
     ]
