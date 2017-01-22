@@ -122,7 +122,28 @@ type Stats = {
                   | Some(_) as x, None | None, (Some(_) as x) -> x
                   | Some(x), Some(y) -> Some(x + " and " + "y")
         }
+    static member GetStr this = this.Str
+    static member WithStr(this, v) = { this with Str = v }
+    static member GetDex this = this.Dex
+    static member WithDex(this, v) = { this with Dex = v }
+    static member GetCon this = this.Con
+    static member WithCon(this, v) = { this with Con = v }
+    static member GetInt this = this.Int
+    static member WithInt(this, v) = { this with Int = v }
+    static member GetWis this = this.Wis
+    static member WithWis(this, v) = { this with Wis = v }
+    static member GetCha this = this.Cha
+    static member WithCha(this, v) = { this with Cha = v }
     static member Empty = { Str = 0; Dex = 0; Con = 0; Int = 0; Wis = 0; Cha = 0; Special = None }
+    static member Descriptors =
+        [
+            "Str", Stats.GetStr, Stats.WithStr
+            "Dex", Stats.GetDex, Stats.WithDex
+            "Con", Stats.GetCon, Stats.WithCon
+            "Int", Stats.GetInt, Stats.WithInt
+            "Wis", Stats.GetWis, Stats.WithWis
+            "Cha", Stats.GetCha, Stats.WithCha
+        ]
 type Race = string * Stats
 let races = [
     "Human", { Str = 1; Dex = 1; Con = 1; Int = 1; Wis = 1; Cha = 1; Special = None }
@@ -204,12 +225,39 @@ let statMethodPicker currentMeth pick =
             R.button [ClassName (if currentMeth = M3d6 then "selected" else ""); OnClick (fun _ -> pick M3d6)] [R.str "Roll 3d6"]
             R.button [ClassName (if currentMeth = M4d6k3 then "selected" else ""); OnClick (fun _ -> pick M4d6k3)] [R.str "Roll 4d6 drop lowest"]
             ]
-let statDisplay stats =
-    let str = sprintf "Str %d\nDex %d\nCon %d\nInt %d\nWis %d\nCha %d%s" stats.Str stats.Dex stats.Con stats.Int stats.Wis stats.Cha (if stats.Special.IsSome then "\n" + stats.Special.Value else "")
-    str.Split('\n') |> List.ofArray |> List.map (fun txt -> R.div [] [R.str txt])
 
-type AbstractDungeon() as this =
-    inherit Component<obj, ADState>(obj())
+let statDisplay stats (setState : (Stats -> Stats) -> unit) =
+    let statNodes =
+        Stats.Descriptors
+        |> List.mapi (fun i (descr, getter, setter) ->
+                        R.div [
+                                OnDragOver (fun e -> e.preventDefault());
+                                OnDrop (fun e ->
+                                        e.preventDefault();
+                                        match (System.Int32.TryParse (e.dataTransfer.getData("text"))) with
+                                        | true, v when v < Stats.Descriptors.Length && i <> v ->
+                                            let (_, otherGetter, otherSetter) = Stats.Descriptors.[v]
+                                            setState (fun (stats' : Stats) ->
+                                                            let otherVal = otherGetter stats'
+                                                            let thisVal = getter stats'
+                                                            setter(otherSetter(stats', thisVal), otherVal)
+                                                     )
+                                        | _ -> ()
+                                        )
+                                ]           <|
+                            [
+                                R.text [
+                                        Draggable true :> IProp
+                                        upcast OnDragStart (fun e -> printfn "Set %d" i; e.dataTransfer.setData("text", i.ToString()) |> ignore)
+                                        ]          <|
+                                    [R.str (sprintf "%s %d" descr (getter stats))]
+                                ])
+    match stats.Special with
+    | Some(v) -> statNodes @ [(R.div [] [R.str v])]
+    | None -> statNodes
+
+type AbstractDungeon(p) as this =
+    inherit Component<obj, ADState>(p)
     let init(prev) =
         let meth = if Option.isSome prev then prev.Value.statMethod else M3d6
         {
@@ -228,7 +276,7 @@ type AbstractDungeon() as this =
         R.div [] [
             statMethodPicker this.state.statMethod (fun picked -> this.setState (init (Some { this.state with statMethod = picked })))
             R.div [] (List.append
-                (statDisplay (this.state.stats.Add(snd this.state.race)))
+                (statDisplay (this.state.stats.Add(snd this.state.race)) (fun statSwapper -> this.setState { this.state with stats = (statSwapper this.state.stats) }))
                 [
                 racePicker this.state.race (fun picked -> this.setState { this.state with race = picked })
                 R.text [] [R.str descr]
@@ -249,7 +297,7 @@ ReactDom.render(
     R.div [] [
         R.h1 [] [R.str "Abstract Dungeoneering"]
         R.h3 [] [R.str "Advanced character creation"]
-        R.com<AbstractDungeon, _, _>() []
+        R.com<AbstractDungeon, _, _>(obj()) []
         ],
     Browser.document.getElementById "content")
 |> ignore
