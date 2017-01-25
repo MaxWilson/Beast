@@ -155,6 +155,7 @@ let races = [
     "Gnome (Forest)", { Stats.Empty with Int = 2; Dex = 1; Special = Some "Darkvision, partial magic resistance, talking to animals" }
     "Half-orc", { Stats.Empty with Str = 2; Con = 1; Special = Some "Darkvision, hard to kill, improved crits" }
     "Halfling (Lightfoot)", { Stats.Empty with Dex = 2; Cha = 1; Special = Some "Lucky" }
+    "Goblin", { Stats.Empty with Dex = 2; Con = 1; Special = Some "Darkvision, bonus action hide/disengage, Fury of the Small" }
     "None/Other", Stats.Empty
     ]
 type StatMethod = M3d6 | M4d6k3
