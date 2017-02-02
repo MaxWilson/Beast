@@ -22,4 +22,4 @@ let randomRational(n:float) =
 let flip0 sb f = f sb
 let flip f x y = f y x
 
-let badMatch sourceFile lineNumber argMatch = failwithf "%s line %s has bug: failed to match %A" sourceFile lineNumber argMatch
+let badMatch sourceFile lineNumber argMatch = failwithf "%s line %s has bug: failed to match '%A'" sourceFile lineNumber argMatch
