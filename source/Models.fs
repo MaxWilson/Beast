@@ -55,4 +55,23 @@ module Stat =
 
     let HP = intProp "HP" 0
     let Name = stringProp "Name" "Nameless"
+    let Str = intProp "Str" 10
+    let Dex = intProp "Dex" 10
+    let Con = intProp "Con" 10
+    let Int = intProp "Int" 10
+    let Wis = intProp "Wis" 10
+    let Cha = intProp "Cha" 10
 
+    let monster(name, (str, dex, con, int, wis, cha, hp)) =
+        let sc = StatScope()
+        [
+            Str.Set str
+            Dex.Set dex
+            Con.Set con
+            Int.Set int
+            Wis.Set wis
+            Cha.Set cha
+            HP.Set hp
+            Name.Set name
+        ] |> List.iter (apply sc)
+        sc

@@ -4,6 +4,7 @@ open Xunit
 open Util
 open Models
 open System
+open Stat
 
 [<Fact>]
 let CheckStatBonus() =
@@ -37,12 +38,38 @@ let TestScopes() =
     Stat.HP.Update 44 child2
     Assert.Equal(33, Stat.HP.Get child1)
     Assert.Equal(44, Stat.HP.Get child2)
-    Stat.HP.Set 4 glob
     let child1 = glob.spawn()
     let child2 = glob.spawn()
-    Assert.Equal(4, Stat.HP.Get child1) // Should have inherited value from global scope
+    Stat.HP.Set 4 glob
+    Assert.Equal(4, Stat.HP.Get child1) // Should have inherited value from global scope even though the scopes were created before global scope got value
     Assert.Equal(4, Stat.HP.Get child2)
     Stat.HP.Update 33 child1
     Stat.HP.Update 44 child2
     Assert.Equal(44, Stat.HP.Get child1) // Note: since this already existed at global scope, should update it at global scope, not child scope
     Assert.Equal(44, Stat.HP.Get child2)
+
+[<Fact>]
+let ``Imagination scopes should be able to read from but not write to real scopes``() =
+    let orc = Stat.monster("Orc", (16, 12, 14, 7, 10, 8, 15))
+    let customOrc = orc.spawn() // user-level customizations
+    Stat.Dex.Set 14 customOrc
+    Stat.Name.Set "Scro" customOrc
+    let orc1 = customOrc.spawn()
+    Stat.Name.Set "Leader" orc1
+    Stat.HP.Set 28 orc1
+    let orc2 = customOrc.spawn()
+    let orc3 = customOrc.spawn()
+    let orc4 = customOrc.spawn()
+    Assert.Equal(14, Dex.Get orc1)
+    Assert.Equal(14, Dex.Get orc2)
+    Assert.Equal(14, Dex.Get orc3)
+    Assert.Equal(14, Dex.Get orc4)
+    Assert.Equal(28, HP.Get orc1)
+    Assert.Equal(15, HP.Get orc2)
+    Assert.Equal(15, HP.Get orc3)
+    Assert.Equal(15, HP.Get orc4)
+    Assert.Equal("Leader", Name.Get orc1)
+    Assert.Equal("Scro", Name.Get orc2)
+    Assert.Equal("Scro", Name.Get orc3)
+    Assert.Equal("Scro", Name.Get orc4)
+
