@@ -13,39 +13,46 @@ type DieRoll = { N: int; DieSize: int; Plus: int } with
     static member eval (rolls: DieRoll list) =
         rolls |> Seq.sumBy DieRoll.eval
 
-// The relatively invariant, combat-oriented part of a creature
-type StatBlock = {
-    Str: int
-    Dex: int
-    Con: int
-    Int: int
-    Wis: int
-    Cha: int
-    HP: int
-    }
-    with
-    static member Create(stats: int * int * int * int * int * int, hp : int) =
-        let s, d, c, i, w, ch = stats
-        { Str = s; Dex = d; Con = c; Int = i; Wis = w; Cha = ch; HP = hp }
-    static member Create(stats: int * int * int * int * int * int, ?hd : DieRoll) =
-        let s, d, c, i, w, ch = stats
-        let hp = match hd with
-                 | None -> 6 + statBonus c
-                 | Some(roll) -> DieRoll.eval roll
-        StatBlock.Create(stats, hp)
-    static member GetStr s = s.Str
-    static member GetDex s = s.Dex
-    static member GetCon s = s.Con
-    static member GetInt s = s.Int
-    static member GetWis s = s.Wis
-    static member GetCha s = s.Cha
-    static member GetHP s = s.HP
+module Stat =
+    open System.Collections.Generic
 
-type Creature(stats) =
-    member val Name = "Creature" with get, set
+    type StatScope private (parentScope: StatScope option) =
+        let vals = Dictionary<string, obj>()
+        new() = StatScope(None)
+        member this.get<'a>(key:string): 'a option =
+            match vals.TryGetValue key with
+            | true, v -> Some(unbox v)
+            | _ ->
+                if parentScope.IsSome then
+                    parentScope.Value.get key
+                else
+                    None
+        member this.update<'a>(key, (valueMaker: 'a -> 'a)) =
+            match vals.TryGetValue key with
+            | true, v ->
+                vals.[key] <- valueMaker(unbox v)
+            | _ ->
+                if parentScope.IsSome then
+                    parentScope.Value.update(key, valueMaker)
+                else
+                    failwithf "Unable to update: found no value for '%s' to update" key
+        member this.set key value =
+            vals.[key] <- value
+        member this.spawn() =
+            StatScope(Some this)
+        member this.imagine(?realParent) =
+            ()
 
-type Terrain = | Cave | Mountain | Forest | Plain
+    type Property<'a> = { Name: string; Get: StatScope -> 'a; Update: 'a -> StatScope -> unit; Set: 'a -> StatScope -> unit }
+    let valueProp<'a> name defaultVal =
+        let getVal (scope: StatScope) = match scope.get<'a> name with | Some(v) -> v | None -> defaultVal
+        let updateVal (v:'a) (scope: StatScope) = scope.update<'a>(name, (fun _ -> v))
+        let setVal (v:'a) (scope: StatScope) = scope.set<'a> name v
+        { Name = name; Get = getVal; Update = updateVal; Set = setVal }
 
-type Encounter() =
-    member val Terrain = Plain with get, set
-    member val Creatures : Creature[] = [||] with get, set
+    let intProp = valueProp<int>
+    let stringProp = valueProp<string>
+
+    let HP = intProp "HP" 0
+    let Name = stringProp "Name" "Nameless"
+
