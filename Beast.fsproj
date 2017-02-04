@@ -56,6 +56,7 @@
     <None Include="public\FractalCaverns\index.html" />
     <None Include="public\MapEdit\index.html" />
     <Compile Include="source\Util.fs" />
+    <Compile Include="source\Stat.fs" />
     <Compile Include="source\Models.fs" />
     <Compile Include="source\Components.fs" />
     <Compile Include="source\Root.fs" />
