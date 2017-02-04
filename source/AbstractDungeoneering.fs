@@ -298,7 +298,7 @@ type AbstractDungeon(p) as this =
             ]
 
 ReactDom.render(
-    R.div [] [
+    R.div [ClassName "dnd"] [
         R.h1 [] [R.str "Abstract Dungeoneering"]
         R.h3 [] [R.str "Advanced character creation"]
         R.com<AbstractDungeon, _, _>(obj()) []

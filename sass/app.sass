@@ -1,5 +1,25 @@
+@mixin button-bg($bg)
+  background: $bg
+  &:hover
+    background: darken($bg,8%)
+    transition: all 0.3s ease
+  &:active
+    background: darken($bg,25%)
+
 h1
   background-color: orange
 
 .selected
   font-weight: bold
+
+.dnd
+  font-family: 'Poiret One', cursive
+
+.dnd button
+  color: white
+  text-decoration: none
+  padding: 5px 10px
+  border-radius: 3px
+  margin: 5px
+  font-family: 'Poiret One', cursive
+  @include button-bg(#3498db)
