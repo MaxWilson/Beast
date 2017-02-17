@@ -1,25 +1,30 @@
 @mixin button-bg($bg)
-  background: $bg
-  &:hover
-    background: darken($bg,8%)
-    transition: all 0.3s ease
-  &:active
-    background: darken($bg,25%)
+    background: $bg
+    &:hover
+        background: darken($bg,8%)
+        transition: all 0.3s ease
+    &:active
+        background: darken($bg,25%)
+    &.selected
+        color: lightgrey
 
 h1
-  background-color: orange
-
-.selected
-  font-weight: bold
+    background-color: orange
 
 .dnd
-  font-family: 'Poiret One', cursive
+    font-family: 'Poiret One', cursive
 
 .dnd button
-  color: white
-  text-decoration: none
-  padding: 5px 10px
-  border-radius: 3px
-  margin: 5px
-  font-family: 'Poiret One', cursive
-  @include button-bg(#3498db)
+    color: white
+    text-decoration: none
+    border-radius: 3px
+    margin: 2px
+    font-family: 'Poiret One', cursive
+    @include button-bg(#3498db)
+
+.btnList
+    display: inline-flex
+    flex-flow: row wrap
+
+.btnList button
+    flex: 0 1 12.5%

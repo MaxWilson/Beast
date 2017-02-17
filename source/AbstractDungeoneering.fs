@@ -221,7 +221,7 @@ let rollOn (table: Table) (state: ADState) =
         state
 
 let racePicker currentRace pick =
-    R.div [] (
+    R.div [ClassName "btnList"] (
         races |> List.map (fun r -> R.button [OnClick (fun _ -> pick r); ClassName (if currentRace = r then "selected" else "")] [R.str (fst r)])
         )
 let statMethodPicker currentMeth pick =
@@ -279,13 +279,13 @@ type AbstractDungeon(p) as this =
                     else System.String.Join(" and ", descr :: this.state.items)
         R.div [] [
             statMethodPicker this.state.statMethod (fun picked -> this.setState (init (Some { this.state with statMethod = picked })))
+            racePicker this.state.race (fun picked -> this.setState { this.state with race = picked })
             R.div [] (List.append
                 (statDisplay (this.state.stats.Add(snd this.state.race)) (fun statSwapper -> this.setState { this.state with stats = (statSwapper this.state.stats) }))
                 [
-                racePicker this.state.race (fun picked -> this.setState { this.state with race = picked })
-                R.text [] [R.str descr]
+                    R.text [] [R.str descr]
                 ])
-            R.div[] [
+            R.div[ClassName "btnList"] [
                 R.button [R.Props.OnClick (fun e -> doAdventure Easy)][R.str "Go on an easy adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Daring)][R.str "Go on a daring adventure"]
                 R.button [R.Props.OnClick (fun e -> doAdventure Exciting)][R.str "Go on an exciting and difficult adventure"]
