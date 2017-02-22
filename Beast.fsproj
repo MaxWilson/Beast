@@ -37,6 +37,12 @@
     <Reference Include="Fable.Core">
       <HintPath>node_modules\fable-core\Fable.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Fable.Elmish">
+      <HintPath>node_modules\fable-elmish\Fable.Elmish.dll</HintPath>
+    </Reference>
+    <Reference Include="Fable.Elmish.React">
+      <HintPath>node_modules\fable-elmish-react\Fable.Elmish.React.dll</HintPath>
+    </Reference>
     <Reference Include="Fable.React">
       <HintPath>node_modules\fable-react\Fable.React.dll</HintPath>
     </Reference>
@@ -55,6 +61,7 @@
     <None Include="public\AbstractDungeoneering\index.html" />
     <None Include="public\FractalCaverns\index.html" />
     <None Include="public\MapEdit\index.html" />
+    <None Include="public\MassCombat.html" />
     <Compile Include="source\Util.fs" />
     <Compile Include="source\Stat.fs" />
     <Compile Include="source\Models.fs" />
@@ -62,6 +69,7 @@
     <Compile Include="source\Root.fs" />
     <Compile Include="source\Beast.fs" />
     <Compile Include="source\AbstractDungeoneering.fs" />
+    <Compile Include="source\MassCombat.fs" />
     <None Include="Script.fsx" />
     <None Include="scratch\explore.fsx" />
   </ItemGroup>
