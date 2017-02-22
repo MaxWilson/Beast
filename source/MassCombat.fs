@@ -22,7 +22,7 @@ let [<Literal>] COMPLETED_TODOS = "completed"
 
 // Local storage interface
 module S =
-    let private STORAGE_KEY = "elmish-react-todomvc"
+    let private STORAGE_KEY = "masscombat"
     let [<PassGenericsAttribute>] load<'T> (): 'T option =
         Browser.localStorage.getItem(STORAGE_KEY)
         |> unbox
@@ -33,6 +33,21 @@ module S =
 
 
 // MODEL
+
+type MassCombat = {
+  left: Formation list
+  right: Formation list
+  }
+  with static member Empty = { left = []; right = [] }
+
+and Formation = {
+  br: int
+  morale: int
+  name: string
+  id: int
+  }
+  with static member Empty = { br = 0; morale = 0; name = "Unnamed" }
+
 type Entry = {
     description : string
     completed : bool
@@ -60,7 +75,6 @@ let newEntry desc id =
     editing = false
     id = id }
 
-
 let init = function
   | Some savedModel -> savedModel, []
   | _ -> emptyModel, []
@@ -68,6 +82,48 @@ let init = function
 
 // UPDATE
 
+type Message =
+  | SetName of int * string
+  | ChangeQuantity of int * Field * QuantityDelta
+  | AddEntry of Side
+  | DeleteEntry of Side
+and Field =
+  | BR
+  | Morale
+and QuantityDelta =
+  | Increment
+  | Decrement
+and Side =
+  | Left
+  | Right
+
+let updateModel (msg: Message) (model: MassCombat) : MassCombat * Cmd<Message> =
+  match msg with
+  | SetName(id, name) ->
+    let updateName (f: Formation) =
+      if f.id = id then { f with name = name } else f
+    { model with left = List.map updateName model.left; right = List.map updateName model.right }, []
+  | ChangeQuantity(id, field, qty) ->
+    let updateFormation (f: Formation) =
+      if f.id = id then
+        match field, qty with
+        | BR, Increment -> { f with br = f.br + 1 }
+        | BR, Decrement -> { f with br = max (f.br - 1) 0 }
+        | Morale, Increment -> { f with br = f.br + 1 }
+        | Morale, Decrement -> { f with br = max (f.br + 1) 0 }
+      else f
+    { model with left = List.map updateFormation model.left; right = List.map updateFormation model.right }, []
+  | AddEntry(Left) ->
+    { model with left = Formation.Empty :: model.left }, []
+  | AddEntry(Right) ->
+    { model with right = Formation.Empty :: model.right }, []
+  | DeleteEntry(side) ->
+    let m' =
+      match side, model.left, model.right with
+      | Left, _::rest, right -> { model with left = rest; right = right }
+      | Right, left, _::rest -> { model with left = left; right = rest }
+      | _ -> model
+    m', []
 
 (** Users of our app can trigger messages by clicking and typing. These
 messages are fed into the `update` function as they occur, letting us react
@@ -298,15 +354,21 @@ let infoFooter =
           R.a [ Href "http://todomvc.com" ] [ unbox "TodoMVC" ]]
     ]
 
+//let view model dispatch =
+//  R.div
+//    [ ClassName "todomvc-wrapper"]
+//    [ R.section
+//        [ ClassName "todoapp" ]
+//        [ lazyView2 viewInput model.field dispatch
+//          lazyView3 viewEntries model.visibility model.entries dispatch
+//          lazyView3 viewControls model.visibility model.entries dispatch ]
+//      infoFooter ]
+
 let view model dispatch =
-  R.div
-    [ ClassName "todomvc-wrapper"]
-    [ R.section
-        [ ClassName "todoapp" ]
-        [ lazyView2 viewInput model.field dispatch
-          lazyView3 viewEntries model.visibility model.entries dispatch
-          lazyView3 viewControls model.visibility model.entries dispatch ]
-      infoFooter ]
+  R.div []
+    [ R.text []
+        [R.str "Hello world"]
+      ]
 
 // App
 Program.mkProgram (S.load >> init) updateWithStorage view
