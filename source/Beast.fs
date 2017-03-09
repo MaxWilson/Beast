@@ -11,6 +11,7 @@ open Fable.Import.React
 
 // Polyfill for ES6 features in old browsers
 Node.require.Invoke("core-js") |> ignore
+Node.require.Invoke("../css/app.css") |> ignore
 
 open Util
 open Models
@@ -53,13 +54,13 @@ type PixiBox<'t when 't :> DisplayObject>(props) =
         canvasContainer.appendChild(renderer.Value.view) |> ignore
       renderer.Value.render(props.render())
   member this.render() =
-    R.div [Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
+    R.div [ClassName "shell"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
   member this.componentDidMount() =
     renderGraphics()
   static member Create<'t when 't :> DisplayObject>(render: unit -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
 
 let view (model:Model) dispatch =
-  R.div [] [
+  R.div [ClassName "shell"] [
     PixiBox.Create (fun () -> Fable.Import.PIXI.Text(
                                 model.message, [
                                   TextStyle.Font "bold italic 24px Arial"
