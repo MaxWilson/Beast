@@ -30,18 +30,23 @@ open Fable.Import.PIXI
 
 type Model = {
     message: string
+    count: int
   }
   with
-  static member create msg = { message = msg }
-type Msg = | NewString of string
+  static member create msg = { message = msg; count = 1 }
+type Msg = | NewString of string | Increment
 let init _ = Model.create "Hello", []
 let update msg model =
   match msg with
   | NewString(txt) ->
-    Model.create txt, []
+    { model with message = txt }, [fun dispatch -> dispatch Increment]
+  | Increment -> { model with count = model.count + 1 }, []
+
+type Height = float
+type Width = float
 
 [<Pojo>]
-type PixiBoxProps<'t when 't :> DisplayObject> = { render: unit -> 't }
+type PixiBoxProps<'t when 't :> DisplayObject> = { render: (Width * Height) -> 't }
 
 type PixiBox<'t when 't :> DisplayObject>(props) =
   inherit React.Component<PixiBoxProps<'t>, obj>(props)
@@ -50,28 +55,47 @@ type PixiBox<'t when 't :> DisplayObject>(props) =
   let renderGraphics() =
     if canvasContainer <> null then
       if renderer.IsNone then
-        printfn "Rendering: %.2f x %.2f" canvasContainer.clientWidth canvasContainer.clientHeight
         renderer <- Globals.autoDetectRenderer(canvasContainer.clientWidth, canvasContainer.clientHeight, [RendererOptions.BackgroundColor (float 0x1099bb); Resolution 1.; Transparent true]) |> unbox<SystemRenderer> |> Some
         canvasContainer.appendChild(renderer.Value.view) |> ignore
-      renderer.Value.render(props.render())
+      renderer.Value.render(props.render(canvasContainer.clientWidth * 0.9, canvasContainer.clientHeight * 0.9))
   member this.render() =
     R.div [ClassName "pixiBox"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
   member this.componentDidMount() =
     renderGraphics()
-  static member Create<'t when 't :> DisplayObject>(render: unit -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
+  static member Create<'t when 't :> DisplayObject>(render: (Width * Height) -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
 
 let view (model:Model) dispatch =
   R.div [ClassName "shell"] [
-    PixiBox.Create (fun () -> Fable.Import.PIXI.Text(
-                                model.message, [
-                                  TextStyle.Font "bold italic 24px Arial"
-                                  TextStyle.Fill (U2.Case1 "lightgrey")
-                                  TextStyle.Align "center"
-                                  TextStyle.Stroke (U2.Case1 "darkgrey")
-                                  TextStyle.StrokeThickness 7.
-                                  ]
-                                )
-                              )
+    PixiBox.Create (fun (w:Width, h:Height) ->
+      let stage = Container()
+      for i in 1..model.count do
+        let txt = Text(
+                      model.message, [
+                        FontFamily "Arial"
+                        FontSize "24px"
+                        FontStyle "italic"
+                        FontWeight "bold"
+                        Fill (U2.Case1 "lightgrey")
+                        Align "center"
+                        Stroke (U2.Case1 "darkgrey")
+                        StrokeThickness 7.
+                        ],
+                      position = Point(Util.randomRational(w), Util.randomRational(h))
+                      )
+        stage.addChild(txt) |> ignore
+      stage.addChild(Text(model.count.ToString(),
+                          [
+                            FontFamily "Arial"
+                            FontSize "24px"
+                            FontStyle "italic"
+                            FontWeight "bold"
+                            Fill (U2.Case1 "lightgrey")
+                            Align "center"
+                            Stroke (U2.Case1 "darkgrey")
+                            StrokeThickness 7.
+                            ])) |> ignore
+      stage
+    )
     R.div [] [
       R.text [] [R.str (model.message)]
       R.br [] []
