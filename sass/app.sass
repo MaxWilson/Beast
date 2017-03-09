@@ -1,13 +1,17 @@
 html
   height: 100%
 body
-  height: 100%
+  height: 98%
 #content
   height: 100%
 
 .shell
+  height: 100%
   display: flex
   flex-flow: column
+
+.shell > .pixiBox
+  flex: 1 1 auto
 
 @mixin button-bg($bg)
     background: $bg

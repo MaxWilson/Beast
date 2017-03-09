@@ -50,11 +50,12 @@ type PixiBox<'t when 't :> DisplayObject>(props) =
   let renderGraphics() =
     if canvasContainer <> null then
       if renderer.IsNone then
+        printfn "Rendering: %.2f x %.2f" canvasContainer.clientWidth canvasContainer.clientHeight
         renderer <- Globals.autoDetectRenderer(canvasContainer.clientWidth, canvasContainer.clientHeight, [RendererOptions.BackgroundColor (float 0x1099bb); Resolution 1.; Transparent true]) |> unbox<SystemRenderer> |> Some
         canvasContainer.appendChild(renderer.Value.view) |> ignore
       renderer.Value.render(props.render())
   member this.render() =
-    R.div [ClassName "shell"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
+    R.div [ClassName "pixiBox"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
   member this.componentDidMount() =
     renderGraphics()
   static member Create<'t when 't :> DisplayObject>(render: unit -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
@@ -71,9 +72,11 @@ let view (model:Model) dispatch =
                                   ]
                                 )
                               )
-    R.str (model.message)
-    R.br [] []
-    R.button [OnClick (fun _ -> dispatch (NewString (if model.message = "Hello" then "Goodbye" else "Hello")))] [R.str "Toggle"]
+    R.div [] [
+      R.text [] [R.str (model.message)]
+      R.br [] []
+      R.button [OnClick (fun _ -> dispatch (NewString (if model.message = "Hello" then "Goodbye" else "Hello")))] [R.str "Toggle"]
+      ]
     ]
 
 Program.mkProgram init update view
