@@ -7,7 +7,7 @@
     "test": "test",
     "build": "fable --target prod",
     "watch": "fable -w --target watch",
-    "sass": "node-sass sass -o out/css",
+    "sass": "node-sass sass -o out/Beast/css",
     "start": "fable -w --target watch"
   },
   "keywords": [
@@ -33,17 +33,18 @@
     "fable-core": "^0.7.28",
     "fable-elmish": "^0.8.1",
     "fable-elmish-react": "^0.8.2",
+    "fable-import-pixi": "0.0.10",
     "fable-powerpack": "0.0.20",
     "fable-react": "^0.8.5",
     "marked": "^0.3.6",
     "node-sass": "^4.5.0",
+    "pixi.js": "^4.4.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
     "source-map-loader": "^0.1.6",
     "style-loader": "^0.13.2",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.4.1",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "webpack-dev-server": "^2.4.1"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

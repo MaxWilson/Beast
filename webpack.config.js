@@ -3,9 +3,9 @@ var webpack = require("webpack");
 
 var cfg = {
   entry: {
-    root: "./out/source/Root.js",
-    beast: "./out/source/Beast.js",
-    abstractDungeoneering: "./out/source/AbstractDungeoneering.js",
+    root: "./out/Beast/source/Root.js",
+    beast: "./out/Beast/source/Beast.js",
+    abstractDungeoneering: "./out/Beast/source/AbstractDungeoneering.js",
   },
   output: {
     path: path.join(__dirname, "public"),
