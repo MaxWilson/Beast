@@ -28,43 +28,36 @@ open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Fable.Import.PIXI
 
-type Model = {
-    message: string
-    count: int
-  }
-  with
-  static member create msg = { message = msg; count = 1 }
-type Msg = | NewString of string | Increment
-let init _ = Model.create "Hello", []
-let update msg model =
+module ViewModel =
+  type EncounterType = ShortRest | LongRest | Fight
+  type EncounterBuildState = {
+    currentMonster: StatScope option
+    roster: Roster
+    }
+  type RunAdventureState = {
+    party: Party
+    encounters: Encounter list
+    }
+  type ViewModelState =
+    | EncounterBuilder of EncounterBuildState
+    | RunAdventure of RunAdventureState
+  type ViewModel = {
+    model: Model
+    }
+open ViewModel
+
+type Msg = | SetField of string * string
+let init _ = Model.create(), []
+let update msg (model:Model) =
   match msg with
+  | SetField(name, value) ->
+    
+    { model with }
   | NewString(txt) ->
     { model with message = txt }, [fun dispatch -> dispatch Increment]
   | Increment -> { model with count = model.count + 1 }, []
 
-type Height = float
-type Width = float
-
-[<Pojo>]
-type PixiBoxProps<'t when 't :> DisplayObject> = { render: (Width * Height) -> 't }
-
-type PixiBox<'t when 't :> DisplayObject>(props) =
-  inherit React.Component<PixiBoxProps<'t>, obj>(props)
-  let mutable canvasContainer: HTMLElement = null
-  let mutable renderer : SystemRenderer option = None
-  let renderGraphics() =
-    if canvasContainer <> null then
-      if renderer.IsNone then
-        renderer <- Globals.autoDetectRenderer(canvasContainer.clientWidth, canvasContainer.clientHeight, [RendererOptions.BackgroundColor (float 0x1099bb); Resolution 1.; Transparent true]) |> unbox<SystemRenderer> |> Some
-        canvasContainer.appendChild(renderer.Value.view) |> ignore
-      renderer.Value.render(props.render(canvasContainer.clientWidth * 0.9, canvasContainer.clientHeight * 0.9))
-  member this.render() =
-    R.div [ClassName "pixiBox"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
-  member this.componentDidMount() =
-    renderGraphics()
-  static member Create<'t when 't :> DisplayObject>(render: (Width * Height) -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
-
-let view (model:Model) dispatch =
+let view (model:ViewModel) dispatch =
   R.div [ClassName "shell"] [
     PixiBox.Create (fun (w:Width, h:Height) ->
       let stage = Container()

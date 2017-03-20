@@ -11,31 +11,27 @@ open Models
 module R = Fable.Helpers.React
 open R.Props
 open Fable.Import.React
+open Fable.Import.PIXI
+open Fable.Import.Browser
+
+type Height = float
+type Width = float
 
 [<Pojo>]
-type CBState = { data: string }
+type PixiBoxProps<'t when 't :> DisplayObject> = { render: (Width * Height) -> 't }
 
-[<Pojo>]
-type CBProps = { nothing: int }
-
-type HelloBox(props: CBProps) as this =
-    inherit React.Component<CBProps, CBState>(props)
-    do this.setInitState({ data = "Hello world!" })
-
-    member x.handleSubmit (e: FormEvent) =
-        let msg  = x.state.data
-        x.setState { data = msg + "!" }
-        e.preventDefault()
-
-    member x.componentDidMount () = ()
-
-    member x.render () =
-        R.div [ClassName "commentBox"] [
-            // Use ReactHelper.com to build a React Component from a type
-            R.text [] [unbox x.state.data]
-            R.input [
-                Type "submit"
-                Value (U2.Case1 "OK")
-                OnClick (fun _ -> x.setState { data = x.state.data + "!" })
-            ] []
-        ]
+type PixiBox<'t when 't :> DisplayObject>(props) =
+  inherit React.Component<PixiBoxProps<'t>, obj>(props)
+  let mutable canvasContainer: HTMLElement = null
+  let mutable renderer : SystemRenderer option = None
+  let renderGraphics() =
+    if canvasContainer <> null then
+      if renderer.IsNone then
+        renderer <- Globals.autoDetectRenderer(canvasContainer.clientWidth, canvasContainer.clientHeight, [RendererOptions.BackgroundColor (float 0x1099bb); Resolution 1.; Transparent true]) |> unbox<SystemRenderer> |> Some
+        canvasContainer.appendChild(renderer.Value.view) |> ignore
+      renderer.Value.render(props.render(canvasContainer.clientWidth * 0.9, canvasContainer.clientHeight * 0.9))
+  member this.render() =
+    R.div [ClassName "pixiBox"; Ref (fun x -> canvasContainer <- (x :?> HTMLElement); renderGraphics())] []
+  member this.componentDidMount() =
+    renderGraphics()
+  static member Create<'t when 't :> DisplayObject>(render: (Width * Height) -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
