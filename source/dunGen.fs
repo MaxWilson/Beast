@@ -58,7 +58,7 @@ let update msg model =
   | Refresh ->
     { model with maze = Some(model.mazeGenerator()) }, []
 let view (model: ViewModel) dispatch =
-  R.div [] [
+  R.div [ClassName "shell"] [
     R.button [OnClick (fun _ -> dispatch Refresh)] [R.str "Refresh"]
     PixiBox.Create(fun(w,h) ->
       let g = new Graphics()
