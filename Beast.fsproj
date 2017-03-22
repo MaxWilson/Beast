@@ -64,7 +64,7 @@
     <None Include="public\AbstractDungeoneering\index.html" />
     <None Include="public\FractalCaverns\index.html" />
     <None Include="public\dunGen\index.html" />
-    <Compile Include="node_modules/fable-import-pixi/Fable.Import.Pixi.fs" />
+    <Compile Include="source\Fable.Import.Pixi.v4.fs" />
     <Compile Include="source\Util.fs" />
     <Compile Include="source\Stat.fs" />
     <Compile Include="source\Models.fs" />
