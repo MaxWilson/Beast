@@ -35,3 +35,22 @@ type PixiBox<'t when 't :> DisplayObject>(props) =
   member this.componentDidMount() =
     renderGraphics()
   static member Create<'t when 't :> DisplayObject>(render: (Width * Height) -> 't) = R.com<PixiBox<'t>, _, _>({ render = render }) []
+
+type KeyDetect(keyCode: int) as this =
+  let mutable isPressed = false
+  do
+    window.addEventListener_keydown(fun e ->
+      if e.keyCode = (float keyCode) then
+        e.preventDefault()
+        this.Pressed(e)
+        isPressed <- true
+      upcast e
+      )
+    window.addEventListener_keyup(fun e ->
+      if e.keyCode = (float keyCode) then
+        e.preventDefault()
+        isPressed <- false
+      upcast e
+      )
+  member val Pressed = (fun e -> ()) with get, set
+  member this.IsPressed = isPressed

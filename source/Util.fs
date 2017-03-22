@@ -24,3 +24,5 @@ let flip f x y = f y x
 let apply args f = f args
 
 let badMatch sourceFile lineNumber argMatch = failwithf "%s line %s has bug: failed to match '%A'" sourceFile lineNumber argMatch
+
+let delay f arg _ = f arg
