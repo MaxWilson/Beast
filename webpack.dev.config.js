@@ -4,10 +4,10 @@ var webpack = require("webpack");
 var cfg = {
   devtool: "source-map",
   entry: {
-    root: "./out/Beast/source/Root.js",
-    beast: "./out/Beast/source/Beast.js",
-    abstractDungeoneering: "./out/Beast/source/AbstractDungeoneering.js",
-    dunGen: "./out/Beast/source/dunGen.js",
+    root: "./out/source/Root.js",
+    beast: "./out/source/Beast.js",
+    abstractDungeoneering: "./out/source/AbstractDungeoneering.js",
+    dunGen: "./out/source/dunGen.js",
   },
   output: {
     path: path.join(__dirname, "public"),
