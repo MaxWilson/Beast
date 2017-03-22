@@ -63,7 +63,7 @@
     <None Include="public\Beast\index.html" />
     <None Include="public\AbstractDungeoneering\index.html" />
     <None Include="public\FractalCaverns\index.html" />
-    <None Include="public\MapEdit\index.html" />
+    <None Include="public\dunGen\index.html" />
     <Compile Include="node_modules/fable-import-pixi/Fable.Import.Pixi.fs" />
     <Compile Include="source\Util.fs" />
     <Compile Include="source\Stat.fs" />
@@ -72,6 +72,7 @@
     <Compile Include="source\Root.fs" />
     <Compile Include="source\Beast.fs" />
     <Compile Include="source\AbstractDungeoneering.fs" />
+    <Compile Include="source\dunGen.fs" />
     <None Include="Script.fsx" />
     <None Include="scratch\explore.fsx" />
   </ItemGroup>

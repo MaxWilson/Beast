@@ -6,6 +6,7 @@ var cfg = {
     root: "./out/Beast/source/Root.js",
     beast: "./out/Beast/source/Beast.js",
     abstractDungeoneering: "./out/Beast/source/AbstractDungeoneering.js",
+    dunGen: "./out/Beast/source/dunGen.js",
   },
   output: {
     path: path.join(__dirname, "public"),

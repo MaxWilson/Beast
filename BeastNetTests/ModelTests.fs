@@ -5,6 +5,7 @@ open Util
 open Models
 open System
 open Stat
+open dunGen
 
 [<Fact>]
 let CheckStatBonus() =
@@ -81,4 +82,20 @@ let ``Imagination scopes should be able to read from but not write to real scope
     Assert.Equal<int list>([28;15;15;15], orcs |> List.map HP.Get)
     Assert.Equal<string list>(["Leader";"Scro";"Scro";"Scro"], orcs |> List.map Name.Get)
 
-
+[<Fact>]
+let ``Carved passages through a maze should be bidirectional and bounds-checked``() =
+  let d = Maze.create 3
+  Maze.carveLeft d (0,0) // should do nothing--cannot exit the maze
+  Maze.carveRight d (0,0) // should create bidirectional passage between 0,0 and 1,0
+  Maze.carveDown d (1,0) // should create bidirectional passage between 1,0 and 1,1
+  let openings coords = Maze.leftOpen d coords, Maze.rightOpen d coords, Maze.upOpen d coords, Maze.downOpen d coords
+  Assert.Equal((false, true, false, false), openings (0,0))
+  Assert.Equal((true, false, false, true), openings (1,0))
+  Assert.Equal((false, false, false, false), openings (2,0))
+  Assert.Equal((false, false, false, false), openings (0,1))
+  Assert.Equal((false, false, true, false), openings (1,1))
+  Assert.Equal((false, false, false, false), openings (2,1))
+  Assert.Equal((false, false, false, false), openings (0,2))
+  Assert.Equal((false, false, false, false), openings (1,2))
+  Assert.Equal((false, false, false, false), openings (2,2))
+  Assert.Equal((3,3), Maze.dimensions d)
