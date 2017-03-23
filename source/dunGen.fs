@@ -30,15 +30,36 @@ open Fable.Import.PIXI
 open Components
 open PIXI
 open System.Runtime.CompilerServices
+open Fable.Core.JsInterop
+open Models.Maze
+
+type MazeGenerator = unit -> Maze.data
+type Algorithm =
+  | Binary
+  | HunterKiller
+  with
+  static member All = [Binary; HunterKiller]
+  static member Render =
+    function
+    | Binary -> "Binary"
+    | HunterKiller -> "Hunter-Killer"
+  static member Parse str =
+    Algorithm.All |> List.find (fun alg -> Algorithm.Render alg = str)
 
 type ViewModel = {
     maze: Maze.data option
-    mazeGenerator: unit -> Maze.data
+    mazeGenerator: MazeGenerator
+    algorithm: Algorithm
     currentPosition: int * int
     revealed: (int * int) Set
     eventGen: (int * int) -> string option
     messages: (int*int*string) list
   }
+
+let rec newReveals maze direction position =
+  if moveCheck direction maze position then
+    position::(newReveals maze direction (move direction position))
+  else [position]
 
 let binaryMaze width height ()=
   let m = Maze.create2D width height
@@ -51,6 +72,47 @@ let binaryMaze width height ()=
       else
         Maze.carveRight m (x,y)
   m
+
+let huntKill width height ()=
+  let maze = Maze.create2D width height
+  let r = new Random()
+  let mutable visited = Set.empty
+  let boundsCheck (x,y) =
+    0 <= x && x < width && 0 <= y && y < height
+  let rec kill currentNode =
+    visited <- visited.Add(currentNode)
+    // don't revisit any already-visited nodes, and don't go out of bounds
+    match Direction.All |> List.filter (fun d ->
+      let node' = move d currentNode
+      boundsCheck node' && (not <| visited.Contains(node'))
+      ) with
+    | [] -> hunt currentNode
+    | lst ->
+      let dir = lst.[r.Next(lst.Length)]
+      let nextNode = move dir currentNode
+      Maze.carveDirection dir maze currentNode
+      // continue killing
+      kill nextNode
+  and hunt currentNode =
+    let candidates = seq {
+      // Scan until we find an unvisited node that is adjacent to a visited node
+      for x in 0..width-1 do
+        for y in 0..height-1 do
+          let node = (x,y)
+          if not (visited.Contains(node)) then
+            for d in Direction.All do
+              let node' = Maze.move d node
+              if boundsCheck node' && visited.Contains(node') then
+                yield (node, d)
+      }
+    match candidates |> Seq.tryHead with
+    | Some(node, d) ->
+      Maze.carveDirection d maze node // connect the two nodes
+      kill node // resume kill
+    | None ->
+      () // done with maze
+  kill (0,0)
+  maze
 
 module List =
   let every pred = List.exists (not << pred) >> not
@@ -101,35 +163,14 @@ let eventsFor (maze: Maze.data) n =
       // Return the event that occurred
       Some(snd triggeredEvent)
 
-type Direction =
-  | Left
-  | Right
-  | Up
-  | Down
-
 type Msg =
   | Refresh
   | Reveal
   | Move of Direction
+  | SwitchAlgorithm of Algorithm
 
 let init _ =
-  { maze = None; mazeGenerator = binaryMaze 22 10; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
-
-let moveCheck = function
-  | Left -> Maze.leftOpen
-  | Right -> Maze.rightOpen
-  | Up -> Maze.upOpen
-  | Down -> Maze.downOpen
-let move direction position =
-  match direction, position with
-  | Left, (x,y) -> x-1, y
-  | Right, (x,y) -> x+1, y
-  | Up, (x,y) -> x,y-1
-  | Down, (x,y) -> x,y+1
-let rec newReveals maze direction position =
-  if moveCheck direction maze position then
-    position::(newReveals maze direction (move direction position))
-  else [position]
+  { maze = None; mazeGenerator = huntKill 22 10; algorithm = HunterKiller; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
 
 let update msg model =
   match msg with
@@ -159,9 +200,11 @@ let update msg model =
     match model.maze with
     | Some(maze) ->
        let xdim, ydim = Maze.dimensions maze
-       let revealed = [for x in 0..xdim do for y in 0..ydim do yield (x,y)]
+       let revealed = [for x in 0..xdim-1 do for y in 0..ydim-1 do yield (x,y)]
        { model with revealed = Set.ofList revealed }, []
     | None -> model, []
+  | SwitchAlgorithm(alg) ->
+    { model with mazeGenerator = (match alg with Binary -> binaryMaze | _ -> huntKill) 18 10; algorithm = alg }, [fun d -> d Refresh]
 
 module Key =
   let left = KeyDetect 37
@@ -171,6 +214,12 @@ module Key =
 
 type DisplayObject with
   member this.finish = ()
+
+let ValueStr str = DefaultValue <| U2.Case1 str
+
+let debugmenow e =
+  System.Diagnostics.Debugger.Break()
+  ()
 
 let view (model: ViewModel) dispatch =
   Key.left.Pressed <- delay dispatch (Move Left)
@@ -182,6 +231,13 @@ let view (model: ViewModel) dispatch =
     R.div [] [
       R.div [] [
         R.h2 [] [R.str "Use the arrow keys to move around the dungeon until you find something interesting"]
+        ]
+      R.form [] [
+        R.label [HtmlFor "algorithmSelector"] [R.str "Maze generation algorithm"]
+        R.select [Id "algorithmSelector"; ValueStr (Algorithm.Render model.algorithm); OnSelect(fun e -> debugmenow e); OnChange(fun e -> dispatch <| SwitchAlgorithm((((e.target |> unbox<obj>)?value) |> unbox string |> Algorithm.Parse)))] (
+          Algorithm.All
+          |> List.map (fun alg -> R.option [OnSelect (fun _ -> dispatch (SwitchAlgorithm alg))][R.str (Algorithm.Render alg)])
+          )
         ]
       R.div [] [
         R.button [OnClick (fun _ -> dispatch Refresh)] [R.str "New Maze"]

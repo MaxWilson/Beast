@@ -40,3 +40,30 @@ module Maze =
     y < (snd d).Length && (snd d).[y].[x]
   /// return the actual dimensions of the maze
   let dimensions (d:data) = (fst d).Length + 1, (snd d).Length + 1
+
+  type Direction =
+    | Left
+    | Right
+    | Up
+    | Down
+    with
+    static member All =  [Left;Right;Up;Down]
+
+  let moveCheck =
+    function
+    | Left -> leftOpen
+    | Right -> rightOpen
+    | Up -> upOpen
+    | Down -> downOpen
+  let carveDirection =
+    function
+    | Left -> carveLeft
+    | Right -> carveRight
+    | Up -> carveUp
+    | Down -> carveDown
+  let move direction position =
+    match direction, position with
+    | Left, (x,y) -> x-1, y
+    | Right, (x,y) -> x+1, y
+    | Up, (x,y) -> x,y-1
+    | Down, (x,y) -> x,y+1
