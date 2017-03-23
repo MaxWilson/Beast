@@ -172,12 +172,19 @@ let view (model: ViewModel) dispatch =
 
   R.div [ClassName "shell"] [
     R.div [] [
-      R.button [OnClick (fun _ -> dispatch Refresh)] [R.str "Refresh"]
-      R.text [] [
+      R.div [] [
+        R.h2 [] [R.str "Use the arrow keys to move around the dungeon until you find something interesting"]
+        ]
+      R.div [] [
+        R.button [OnClick (fun _ -> dispatch Refresh)] [R.str "New Maze"]
+        ]
+      R.div [] [
+        R.text [] [
           match model.messages |> List.filter (fun (x,y,msg) -> (x,y) = model.currentPosition) with
           | [] -> "Nothing interesting here"
           | msgs -> String.Join("; also ", msgs |> List.map(fun(_,_,msg) -> msg))
           |> R.str
+          ]
         ]
       ]
     PixiBox.Create(fun(w,h) ->
