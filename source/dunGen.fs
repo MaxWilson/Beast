@@ -109,6 +109,7 @@ type Direction =
 
 type Msg =
   | Refresh
+  | Reveal
   | Move of Direction
 
 let init _ =
@@ -154,6 +155,13 @@ let update msg model =
         { model' with messages = (x,y,message)::model.messages }, []
     | _ ->
       model, []
+  | Reveal ->
+    match model.maze with
+    | Some(maze) ->
+       let xdim, ydim = Maze.dimensions maze
+       let revealed = [for x in 0..xdim do for y in 0..ydim do yield (x,y)]
+       { model with revealed = Set.ofList revealed }, []
+    | None -> model, []
 
 module Key =
   let left = KeyDetect 37
@@ -177,6 +185,7 @@ let view (model: ViewModel) dispatch =
         ]
       R.div [] [
         R.button [OnClick (fun _ -> dispatch Refresh)] [R.str "New Maze"]
+        R.button [OnClick (fun _ -> dispatch Reveal)] [R.str "Reveal Maze"]
         ]
       R.div [] [
         R.text [] [
