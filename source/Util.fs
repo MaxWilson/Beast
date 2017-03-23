@@ -26,3 +26,8 @@ let apply args f = f args
 let badMatch sourceFile lineNumber argMatch = failwithf "%s line %s has bug: failed to match '%A'" sourceFile lineNumber argMatch
 
 let delay f arg _ = f arg
+
+module List =
+  let cross xs ys =
+    [for x in xs do for y in ys do yield (x,y)]
+  let every pred = List.exists (not << pred) >> not

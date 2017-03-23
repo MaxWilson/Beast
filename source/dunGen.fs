@@ -37,12 +37,14 @@ type MazeGenerator = unit -> Maze.data
 type Algorithm =
   | Binary
   | HunterKiller
+  | ABW
   with
-  static member All = [Binary; HunterKiller]
+  static member All = [Binary; HunterKiller; ABW]
   static member Render =
     function
     | Binary -> "Binary"
     | HunterKiller -> "Hunter-Killer"
+    | ABW -> "Aldous-Broder/Wilson's"
   static member Parse str =
     Algorithm.All |> List.find (fun alg -> Algorithm.Render alg = str)
 
@@ -114,8 +116,32 @@ let huntKill width height ()=
   kill (0,0)
   maze
 
-module List =
-  let every pred = List.exists (not << pred) >> not
+let aldousBroderWilsons width height ()=
+  // We actually only implement Aldous-Broder instead of a hybrid,
+  // because perf turns out to be good enough. But it produces the same
+  // maze as Wilson's or a hybrid would, so I'll leave the label
+  // "Aldous-Broder/Wilson's" intact.
+  let maze = Maze.create2D width height
+  let r = new Random()
+  let mutable visited = Set.empty
+  let mutable unvisited = Set.ofList (List.cross [0..width-1] [0..height-1])
+  let visit node =
+    visited <- visited.Add(node)
+    unvisited <- unvisited.Remove(node)
+  let boundsCheck (x,y) =
+    0 <= x && x < width && 0 <= y && y < height
+  let mutable node = (0, 0)
+  while unvisited.Count > 0 do
+    visit node
+    // choose a direction that doesn't take us outside the maze
+    let validDirections = Direction.All |> List.filter (fun d -> boundsCheck (move d node))
+    let dir = validDirections.[r.Next(validDirections.Length)]
+    let node' = (move dir node)
+    if unvisited.Contains(node') then
+      // connect the two nodes
+      Maze.carveDirection dir maze node
+    node <- node'
+  maze
 
 let eventsFor (maze: Maze.data) n =
   let r = new Random()
@@ -170,7 +196,7 @@ type Msg =
   | SwitchAlgorithm of Algorithm
 
 let init _ =
-  { maze = None; mazeGenerator = huntKill 22 10; algorithm = HunterKiller; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
+  { maze = None; mazeGenerator = huntKill 22 10; algorithm = ABW; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
 
 let update msg model =
   match msg with
@@ -204,7 +230,7 @@ let update msg model =
        { model with revealed = Set.ofList revealed }, []
     | None -> model, []
   | SwitchAlgorithm(alg) ->
-    { model with mazeGenerator = (match alg with Binary -> binaryMaze | _ -> huntKill) 18 10; algorithm = alg }, [fun d -> d Refresh]
+    { model with mazeGenerator = (match alg with Binary -> binaryMaze | HunterKiller -> huntKill | ABW -> aldousBroderWilsons) 18 10; algorithm = alg }, [fun d -> d Refresh]
 
 module Key =
   let left = KeyDetect 37
