@@ -29,12 +29,13 @@ open Fable.Helpers.React.Props
 open Fable.Import.PIXI
 open Components
 open PIXI
+open System.Runtime.CompilerServices
 
 type ViewModel = {
     maze: Maze.data option
     mazeGenerator: unit -> Maze.data
     currentPosition: int * int
-    revealed: (int * int) list
+    revealed: (int * int) Set
     eventGen: (int * int) -> string option
     messages: (int*int*string) list
   }
@@ -63,6 +64,11 @@ let eventsFor (maze: Maze.data) n =
     "You feel suddenly weak. Make a DC 10 Con save or take 2d6 necrotic damage."
     "Zombies attack!"
     "The floor gives way and you fall in a pit. Take 1d6 falling damage"
+    "Mutants attack!"
+    "A Pit Fiend attacks!"
+    "A Blue Dragon attacks!"
+    "Carrion crawler attacks!"
+    "You find a body, a suit of chain mail, and 500 gp."
     |]
   let mutable events = [
     for i in 1..n do
@@ -106,38 +112,46 @@ type Msg =
   | Move of Direction
 
 let init _ =
-  { maze = None; mazeGenerator = binaryMaze 22 10; currentPosition = (0,0); messages = []; revealed = []; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
+  { maze = None; mazeGenerator = binaryMaze 22 10; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
+
+let moveCheck = function
+  | Left -> Maze.leftOpen
+  | Right -> Maze.rightOpen
+  | Up -> Maze.upOpen
+  | Down -> Maze.downOpen
+let move direction position =
+  match direction, position with
+  | Left, (x,y) -> x-1, y
+  | Right, (x,y) -> x+1, y
+  | Up, (x,y) -> x,y-1
+  | Down, (x,y) -> x,y+1
+let rec newReveals maze direction position =
+  if moveCheck direction maze position then
+    position::(newReveals maze direction (move direction position))
+  else [position]
 
 let update msg model =
   match msg with
   | Refresh ->
     let maze = model.mazeGenerator()
     let xdim, ydim = Maze.dimensions maze
-    { model with maze = Some(maze); currentPosition = (0,0); messages = []; revealed = []; eventGen = eventsFor maze (xdim * ydim / 8) }, []
+    let revealed = [Left;Right;Up;Down] |> List.collect (fun d -> newReveals maze d (0,0)) |> Set.ofList
+    { model with maze = Some(maze); currentPosition = (0,0); messages = []; revealed = revealed; eventGen = eventsFor maze (xdim * ydim / 8) }, []
   | Move(dir) ->
     let boundsCheck maze (x, y) =
       let w, h = Maze.dimensions maze
       let between low high v = low <= v && v < high
       between 0 w x && between 0 h y
-    let moveCheck =
-      match dir with
-      | Left -> Maze.leftOpen
-      | Right -> Maze.rightOpen
-      | Up -> Maze.upOpen
-      | Down -> Maze.downOpen
-    let x, y =
-      match dir, model.currentPosition with
-      | Left, (x,y) -> x-1, y
-      | Right, (x,y) -> x+1, y
-      | Up, (x,y) -> x,y-1
-      | Down, (x,y) -> x,y+1
+    let x, y = move dir model.currentPosition
     match model.maze with
-    | Some(maze) when boundsCheck maze (x,y) && moveCheck maze model.currentPosition ->
-      match model.eventGen (x,y) with
+    | Some(maze) when boundsCheck maze (x,y) && moveCheck dir maze model.currentPosition ->
+      let newRevealed = [Left;Right;Up;Down] |> List.collect (fun d -> newReveals maze d (x,y))
+      let model' = { model with currentPosition = (x,y); revealed = model.revealed |> Set.union(Set.ofList newRevealed) }
+      match model'.eventGen (x,y) with
       | None ->
-        { model with currentPosition = (x,y) }, []
+        model', []
       | Some(message) ->
-        { model with currentPosition = (x,y); messages = (x,y,message)::model.messages }, []
+        { model' with messages = (x,y,message)::model.messages }, []
     | _ ->
       model, []
 
@@ -146,6 +160,9 @@ module Key =
   let up = KeyDetect 38
   let right = KeyDetect 39
   let down = KeyDetect 40
+
+type DisplayObject with
+  member this.finish = ()
 
 let view (model: ViewModel) dispatch =
   Key.left.Pressed <- delay dispatch (Move Left)
@@ -173,26 +190,47 @@ let view (model: ViewModel) dispatch =
         let cellWidth = w/float xlen
         let toX x = float x * cellWidth
         let toY y = float y * cellHeight
-        g.lineStyle(5., float 0x696969 ) |> ignore
-        g.moveTo(0.,2.).lineTo(w,2.).moveTo(2.,0.).lineTo(2.,h) |> ignore
-        g.moveTo(0.,h-2.).lineTo(w,h-2.).moveTo(w-2.,0.).lineTo(w-2.,h) |> ignore
+        let wallColor = float 0x696969
+        let fogOfWarColor = float 0xA9A9A9
+        let wallWidth = 4.
+        let halfWall = wallWidth/2.
+        let emptyColor = float 0xFFFFFF
         for x in 0 .. xlen - 1 do
           for y in 0.. ylen - 1 do
             let left = (float x) * cellWidth
             let right = (float x + 1.) * cellWidth
             let top = (float y) * cellHeight
             let bottom = (float y + 1.) * cellHeight
-            if not <| Maze.rightOpen maze (x,y) then
-              g.moveTo(right, top).lineTo(right, bottom) |> ignore
-            if not <| Maze.downOpen maze (x,y) then
-              g.moveTo(left, bottom).lineTo(right, bottom) |> ignore
+            if not (model.revealed |> Set.contains (x,y)) then
+              // draw fog of war
+              g.lineStyle(0.).beginFill(fogOfWarColor).drawRect(left+halfWall, top+halfWall, cellWidth-wallWidth, cellHeight-wallWidth).endFill().finish
+
+            // draw walls if you can see them, giving a hint of where the openings are
+            let color =
+              if not (model.revealed.Contains (x,y) || model.revealed.Contains(x+1,y)) then
+                fogOfWarColor
+              elif not <| Maze.rightOpen maze (x,y) then
+                wallColor
+              else emptyColor
+            g.lineStyle(wallWidth, color).moveTo(right, top).lineTo(right, bottom).finish
+
+            let color =
+              if not (model.revealed.Contains (x,y) || model.revealed.Contains(x,y+1)) then
+                fogOfWarColor
+              elif not <| Maze.downOpen maze (x,y) then
+                wallColor
+              else emptyColor
+            g.lineStyle(wallWidth, color).moveTo(left, bottom).lineTo(right, bottom).finish
+        // draw exterior walls
+        g.lineStyle(wallWidth,wallColor).moveTo(0.,halfWall).lineTo(w,halfWall).moveTo(halfWall,0.).lineTo(halfWall,h)
+          .moveTo(0.,h-halfWall).lineTo(w,h-halfWall).moveTo(w-halfWall,0.).lineTo(w-halfWall,h).finish
         // Also, draw the current position in red
         let left, top =
           match model.currentPosition with
           | (x,y) -> toX x, toY y
         g.lineStyle(0.).beginFill(float 0x891121)
           .drawRect(left + 10., top + 10., cellWidth - 20., cellHeight - 20.) // leave 10-pixel margin because it looks good
-          .endFill() |> ignore
+          .endFill().finish
         for (x,y,msg) in model.messages do
           let elide maxLen (msg:string) =
             if msg.Length > maxLen then msg.Substring(0, maxLen) + "..."
