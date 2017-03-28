@@ -38,13 +38,15 @@ type Algorithm =
   | Binary
   | HunterKiller
   | ABW
+  | RecursiveBacktracker
   with
-  static member All = [Binary; HunterKiller; ABW]
+  static member All = [Binary; HunterKiller; ABW; RecursiveBacktracker]
   static member Render =
     function
     | Binary -> "Binary"
     | HunterKiller -> "Hunter-Killer"
     | ABW -> "Aldous-Broder/Wilson's"
+    | RecursiveBacktracker -> "Recursive Backtracker"
   static member Parse str =
     Algorithm.All |> List.find (fun alg -> Algorithm.Render alg = str)
 
@@ -143,6 +145,10 @@ let aldousBroderWilsons width height ()=
     node <- node'
   maze
 
+let recursiveBacktracker width height ()=
+  let maze = Maze.create2D width height
+  maze
+
 let eventsFor (maze: Maze.data) n =
   let r = new Random()
   let table = [|
@@ -196,7 +202,7 @@ type Msg =
   | SwitchAlgorithm of Algorithm
 
 let init _ =
-  { maze = None; mazeGenerator = huntKill 22 10; algorithm = ABW; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [fun d -> d Refresh]
+  { maze = None; mazeGenerator = (fun () -> Maze.create 1); algorithm = Algorithm.All |> List.last; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [(fun d -> d (SwitchAlgorithm (Algorithm.All |> List.last))); (fun d -> d Refresh)]
 
 let update msg model =
   match msg with
@@ -230,7 +236,17 @@ let update msg model =
        { model with revealed = Set.ofList revealed }, []
     | None -> model, []
   | SwitchAlgorithm(alg) ->
-    { model with mazeGenerator = (match alg with Binary -> binaryMaze | HunterKiller -> huntKill | ABW -> aldousBroderWilsons) 18 10; algorithm = alg }, [fun d -> d Refresh]
+    { model with
+        mazeGenerator =
+          (match alg with
+            | Binary -> binaryMaze
+            | HunterKiller -> huntKill
+            | ABW -> aldousBroderWilsons
+            | RecursiveBacktracker -> recursiveBacktracker
+          ) 22 10
+        algorithm = alg
+      },
+      [fun d -> d Refresh]
 
 module Key =
   let left = KeyDetect 37
