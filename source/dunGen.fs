@@ -195,6 +195,7 @@ let eventsFor (maze: Maze.data) n =
 type Msg =
   | Refresh
   | Reveal
+  | Reset
   | Move of Direction
   | SwitchAlgorithm of Algorithm
 
@@ -203,6 +204,8 @@ let init _ =
 
 let update msg model =
   match msg with
+  | Reset ->
+    { model with points = 0 }, [fun dispatch -> dispatch Refresh]
   | Refresh ->
     let maze = model.mazeGenerator()
     let xdim, ydim = Maze.dimensions maze
@@ -212,7 +215,7 @@ let update msg model =
       match (r.Next(xdim), r.Next(ydim)) with
       | (0,0) -> (xdim-1, ydim-1) // never want goal in start position, so just pick opposite corner in this rare case. Could recur instead but why bother?
       | x,y -> x,y
-    { model with maze = Some(maze); currentPosition = (0,0); messages = []; revealed = revealed; eventGen = eventsFor maze (xdim * ydim / 5); goal = goal; steps = 0 }, []
+    { model with maze = Some(maze); currentPosition = (0,0); messages = []; revealed = revealed; eventGen = eventsFor maze 0; goal = goal; steps = 0 }, []
   | Move(dir) ->
     let boundsCheck maze (x, y) =
       let w, h = Maze.dimensions maze
@@ -279,7 +282,7 @@ let view (model: ViewModel) dispatch =
   R.div [ClassName "shell"] [
     R.div [] [
       R.div [] [
-        R.h2 [] [R.str "Use the arrow keys to move around the dungeon until you find the blue X. The faster you find it, the more points you get. Watch out for monsters!"]
+        R.h2 [] [R.str "Use the arrow keys to move around the dungeon until you find the blue X. The faster you find it, the more points you get."]
         ]
       R.h4 [] [R.str (sprintf "Points: %d      Steps: %d" model.points model.steps)]
       R.form [] [
@@ -292,6 +295,7 @@ let view (model: ViewModel) dispatch =
       R.div [] [
         R.button [OnClick (fun _ -> dispatch Refresh)] [R.str "New Maze"]
         R.button [OnClick (fun _ -> dispatch Reveal)] [R.str "Reveal Maze"]
+        R.button [OnClick (fun _ -> dispatch Reset)] [R.str "New Player"]
         ]
       R.div [] [
         R.text [] [
