@@ -38,15 +38,13 @@ type Algorithm =
   | Binary
   | HunterKiller
   | ABW
-  | RecursiveBacktracker
   with
-  static member All = [Binary; HunterKiller; ABW; RecursiveBacktracker]
+  static member All = [Binary; HunterKiller; ABW]
   static member Render =
     function
     | Binary -> "Binary"
     | HunterKiller -> "Hunter-Killer"
     | ABW -> "Aldous-Broder/Wilson's"
-    | RecursiveBacktracker -> "Recursive Backtracker"
   static member Parse str =
     Algorithm.All |> List.find (fun alg -> Algorithm.Render alg = str)
 
@@ -58,6 +56,9 @@ type ViewModel = {
     revealed: (int * int) Set
     eventGen: (int * int) -> string option
     messages: (int*int*string) list
+    goal: int * int
+    points: int
+    steps: int
   }
 
 let rec newReveals maze direction position =
@@ -145,10 +146,6 @@ let aldousBroderWilsons width height ()=
     node <- node'
   maze
 
-let recursiveBacktracker width height ()=
-  let maze = Maze.create2D width height
-  maze
-
 let eventsFor (maze: Maze.data) n =
   let r = new Random()
   let table = [|
@@ -202,7 +199,7 @@ type Msg =
   | SwitchAlgorithm of Algorithm
 
 let init _ =
-  { maze = None; mazeGenerator = (fun () -> Maze.create 1); algorithm = Algorithm.All |> List.last; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None) }, [(fun d -> d (SwitchAlgorithm (Algorithm.All |> List.last))); (fun d -> d Refresh)]
+  { maze = None; mazeGenerator = (fun () -> Maze.create 1); algorithm = Algorithm.All |> List.last; currentPosition = (0,0); messages = []; revealed = Set.empty; eventGen = (fun _ -> None); goal = (0,0); points = 0; steps = 0 }, [(fun d -> d (SwitchAlgorithm (Algorithm.All |> List.last))); (fun d -> d Refresh)]
 
 let update msg model =
   match msg with
@@ -210,7 +207,12 @@ let update msg model =
     let maze = model.mazeGenerator()
     let xdim, ydim = Maze.dimensions maze
     let revealed = [Left;Right;Up;Down] |> List.collect (fun d -> newReveals maze d (0,0)) |> Set.ofList
-    { model with maze = Some(maze); currentPosition = (0,0); messages = []; revealed = revealed; eventGen = eventsFor maze (xdim * ydim / 8) }, []
+    let r = new Random()
+    let goal =
+      match (r.Next(xdim), r.Next(ydim)) with
+      | (0,0) -> (xdim-1, ydim-1) // never want goal in start position, so just pick opposite corner in this rare case. Could recur instead but why bother?
+      | x,y -> x,y
+    { model with maze = Some(maze); currentPosition = (0,0); messages = []; revealed = revealed; eventGen = eventsFor maze (xdim * ydim / 5); goal = goal; steps = 0 }, []
   | Move(dir) ->
     let boundsCheck maze (x, y) =
       let w, h = Maze.dimensions maze
@@ -220,12 +222,18 @@ let update msg model =
     match model.maze with
     | Some(maze) when boundsCheck maze (x,y) && moveCheck dir maze model.currentPosition ->
       let newRevealed = [Left;Right;Up;Down] |> List.collect (fun d -> newReveals maze d (x,y))
-      let model' = { model with currentPosition = (x,y); revealed = model.revealed |> Set.union(Set.ofList newRevealed) }
-      match model'.eventGen (x,y) with
-      | None ->
+      let model' = { model with currentPosition = (x,y); revealed = model.revealed |> Set.union(Set.ofList newRevealed); steps = model.steps + 1 }
+      let model' =
+        match model'.eventGen (x,y) with
+        | None ->
+          model'
+        | Some(message) ->
+          { model' with messages = (x,y,message)::model.messages }
+      // check for goal and if so then refresh
+      if model'.goal = model'.currentPosition then
+        { model' with points = model.points + (max 0 ((200 - model.steps) * 10)) }, [fun d -> d Refresh]
+      else
         model', []
-      | Some(message) ->
-        { model' with messages = (x,y,message)::model.messages }, []
     | _ ->
       model, []
   | Reveal ->
@@ -242,7 +250,6 @@ let update msg model =
             | Binary -> binaryMaze
             | HunterKiller -> huntKill
             | ABW -> aldousBroderWilsons
-            | RecursiveBacktracker -> recursiveBacktracker
           ) 22 10
         algorithm = alg
       },
@@ -272,8 +279,9 @@ let view (model: ViewModel) dispatch =
   R.div [ClassName "shell"] [
     R.div [] [
       R.div [] [
-        R.h2 [] [R.str "Use the arrow keys to move around the dungeon until you find something interesting"]
+        R.h2 [] [R.str "Use the arrow keys to move around the dungeon until you find the blue X. The faster you find it, the more points you get. Watch out for monsters!"]
         ]
+      R.h4 [] [R.str (sprintf "Points: %d      Steps: %d" model.points model.steps)]
       R.form [] [
         R.label [HtmlFor "algorithmSelector"] [R.str "Maze generation algorithm"]
         R.select [Id "algorithmSelector"; ValueStr (Algorithm.Render model.algorithm); OnSelect(fun e -> debugmenow e); OnChange(fun e -> dispatch <| SwitchAlgorithm((((e.target |> unbox<obj>)?value) |> unbox string |> Algorithm.Parse)))] (
@@ -338,6 +346,17 @@ let view (model: ViewModel) dispatch =
         // draw exterior walls
         g.lineStyle(wallWidth,wallColor).moveTo(0.,halfWall).lineTo(w,halfWall).moveTo(halfWall,0.).lineTo(halfWall,h)
           .moveTo(0.,h-halfWall).lineTo(w,h-halfWall).moveTo(w-halfWall,0.).lineTo(w-halfWall,h).finish
+        // draw goal as blue X
+        let left, top =
+          match model.goal with
+          | (x,y) -> toX x, toY y
+        g.lineStyle(5., float 0x0011FF)
+          .moveTo(left, top)
+          .lineTo(left + cellWidth, top + cellHeight)
+          .moveTo(left + cellWidth, top)
+          .lineTo(left, top + cellHeight)
+          .finish
+
         // Also, draw the current position in red
         let left, top =
           match model.currentPosition with
