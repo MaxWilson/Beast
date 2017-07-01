@@ -66,6 +66,7 @@
     <None Include="public\dunGen\index.html" />
     <Compile Include="source\Fable.Import.Pixi.v4.fs" />
     <Compile Include="source\Util.fs" />
+    <Compile Include="source\Packrat.fs" />
     <Compile Include="source\Stat.fs" />
     <Compile Include="source\Models.fs" />
     <Compile Include="source\Components.fs" />
@@ -75,6 +76,7 @@
     <Compile Include="source\dunGen.fs" />
     <None Include="Script.fsx" />
     <None Include="scratch\explore.fsx" />
+    <None Include="scratch\mockRuleEngine.fsx" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
