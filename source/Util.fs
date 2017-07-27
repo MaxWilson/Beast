@@ -31,3 +31,5 @@ module List =
   let cross xs ys =
     [for x in xs do for y in ys do yield (x,y)]
   let every pred = List.exists (not << pred) >> not
+
+

@@ -66,6 +66,7 @@
     <None Include="public\dunGen\index.html" />
     <Compile Include="source\Fable.Import.Pixi.v4.fs" />
     <Compile Include="source\Util.fs" />
+    <Compile Include="source\Heap.fs" />
     <Compile Include="source\Stat.fs" />
     <Compile Include="source\Models.fs" />
     <Compile Include="source\Components.fs" />
