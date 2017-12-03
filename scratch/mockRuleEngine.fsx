@@ -87,3 +87,24 @@ world <- (update world (parse "Init 300x300"))
 world <- (update world (parse "add 40 orogs"))
 world <- (update world (parse "Add 40 orogs south"))
 printfn "%A" world
+
+let mutable s = ""
+for x in [5..110] do
+  s <- s + (sprintf  "#selectnation %d\n#epithet \"Nation %d\"\n#end\n" x x)
+System.Windows.Forms.Clipboard.SetText s
+
+type Id = int
+type CreatureState = { Id: Id; Name: string; HP : int; Coords: int * int; TeamNumber: int; HasActed: bool; HasReacted: bool }
+type GameState = { Units: Map<Id, CreatureState> }
+type Attack = { Agent: Id; Target: Id }
+type Dodge = { Agent: Id }
+type Action = Attack of Attack
+            | Dodge of Dodge
+type Event = Action
+type Explanation = string
+type ModelState = GameState * (Event * Explanation[])[]
+let resolve (state: ModelState) : ModelState -> ModelState =
+  failwith "Not implemented"
+
+
+
