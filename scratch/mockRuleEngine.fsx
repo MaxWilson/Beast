@@ -96,15 +96,36 @@ System.Windows.Forms.Clipboard.SetText s
 type Id = int
 type CreatureState = { Id: Id; Name: string; HP : int; Coords: int * int; TeamNumber: int; HasActed: bool; HasReacted: bool }
 type GameState = { Units: Map<Id, CreatureState> }
-type Attack = { Agent: Id; Target: Id }
+//type Attack = { Agent: Id; Target: Id }
 type Dodge = { Agent: Id }
-type Action = Attack of Attack
-            | Dodge of Dodge
+//type Action = Attack of Attack
+//            | Dodge of Dodge
 type Event = Action
 type Explanation = string
 type ModelState = GameState * (Event * Explanation[])[]
 let resolve (state: ModelState) : ModelState -> ModelState =
   failwith "Not implemented"
 
+type TODO = unit // marker for something I haven't figured out details of yet
+type Attack = Attack of Id * Id
+type AttackResult = Hit | Miss | Crit
+type Roll = Roll of int * int * int
+type Rolled =
+    Rolled of rolls: Roll list * result: int
+type RolledAttack = RolledAttack of Roll list * result: int * verdict: AttackResult
+type Hit = Hit of Attack * RolledAttack * Rolled
+type Recurrence = Recurrence of TODO
+type AoE = AoE of TODO
+type Damage =
+  | HitDamage of Hit
+  | AoEDamage of AoE
+  | RecurringDamage of Recurrence
+  with
+  static member Of(input) = HitDamage(input)
+  static member Of(input) = AoEDamage(input)
+  static member Of(input) = RecurringDamage(input)
 
-
+// creature 1 crits 2 for 43 points of damage
+let basicHitLogEntry = Damage.Of(Hit(Attack(1, 2), RolledAttack([Roll(1,20,4)], 24, Crit), Rolled([Roll(6,10,4)], 43)))
+// creature 1 casts Fireball
+let fireballLogEntry = Damage.Of(AoE())
