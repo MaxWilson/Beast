@@ -76,6 +76,7 @@
     <Compile Include="source\dunGen.fs" />
     <None Include="Script.fsx" />
     <None Include="scratch\explore.fsx" />
+    <None Include="scratch\Scratch.fsx" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
