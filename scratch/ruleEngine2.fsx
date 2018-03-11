@@ -18,19 +18,26 @@ let unfold (updateState: 'world -> 'node -> 'world) (deduceNodes: 'world -> 'nod
       let grandchildren, world = loopdfs [node] world 
       let treenode = Node(node, grandchildren)
       treenode, (acc, world)
-    let children = 
-      flip List.unfold (acc, world) <| fun (acc, world) ->
+    let rec unfoldWithState f st =
+      match f st with
+      | Some(v, st) -> 
+        let others, st = (unfoldWithState f st)
+        v::others, st
+      | None -> [], st
+    let children, (_, world) = 
+      flip unfoldWithState (acc, world) <| fun (acc, world) ->
         makeNext world acc |> Option.map (flip makeTreenode world)
     children, world
   match predecessors, loopdfs predecessors world with
   | [node], (children, world) -> Node(node, children), world
-  | nodes, (children, world) -> failwithf "Current implementation can only handle tree, not forest, at the root level. Got %A" nodes
+  | nodes, (_, _) -> failwithf "Current implementation can only handle tree, not forest, at the root level. Got %A" nodes
 
 
 // example usage of Tree.unfold. The rule here is, "Starting from n=1, produce two children (2n) and (2n+1), unless "
 let treeCount maxN =
 
-  let yielder count accum = match accum with | h::t when count < maxN -> Some(h, t) | _ ->  None
+  let yielder count accum = 
+    match accum with | h::t when count < maxN -> Some(h, t) | _ ->  None
 
   let deduceChildren _ preds =
     match preds with
@@ -43,8 +50,9 @@ let treeCount maxN =
     | _ -> failwith "Should never happen when using Tree (because it doesn't support multiple predecessors)"
 
   // return the resulting tree
-  0 |> unfold (fun count _ -> count + 1) deduceChildren ["1"] |> fst
+  1 |> unfold (fun count _ -> count + 1) deduceChildren ["1"] |> fst
 
 // check expectations
 treeCount 6 = Node("1", [Node("2", [Leaf "4"; Leaf "5"]); Node("3", [Leaf "6"])])
-treeCount 4 = Node("1", [Node("2", [Leaf "4"; Leaf "5"])])
+treeCount 4 = Node("1", [Node("2", [Leaf "4"]); Node("3", [])])
+treeCount 3
