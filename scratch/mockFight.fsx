@@ -15,7 +15,7 @@ module Lens =
   let over l f =
     l (f >> Some) >> function Some t -> t | _ -> failwith "Impossible"
   let set l b = over l <| fun _ -> b
-  let lens get set = fun f s ->
+  let lens get set : Lens<_,_,_,_> = fun f s ->
     (get s |> f : Option<_>) |> Option.map (fun f -> set f s)
 
 module Props =
@@ -24,14 +24,31 @@ module Props =
       (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> (v |> unbox<'t>) | Some v -> failwithf "Could not convert %A to %s" v (typeof<'t>.Name) | None -> Unchecked.defaultof<'t>)
       (fun v x -> Map.add propName v x)
       f
+  let singleList f =
+    Lens.lens
+      (List.head)
+      (fun v x -> [v])
+      f
   let set prop v stats = stats |> Lens.set prop (box v)
   let get prop stats = stats |> Lens.view prop
 
+module DataTypes =
+  type DieRoll = DieRoll of number: int * dieSize: int | StaticModifier of int
+  type DamageType = Weapon of magical: bool | Fire | Poison
+  type DamageDefinition = { damageType: DamageType; amount: DieRoll list }
+  type AttackDefinition = { name: string; toHit: int; damages: DamageDefinition list }
+    with
+    static member simple name toHit n d plus =
+      { name = name; toHit = toHit; damages = [{ damageType = Weapon(false); amount = if plus <> 0 then [DieRoll(n, d); StaticModifier(plus)] else [DieRoll(n,d)] }] }
+
 module Creature =
   open Props
+  open DataTypes
   let name = prop<Name> "Name"
   let hp = prop<int64> "HP"
   let maxHp = prop<int64> "MaxHP"
+  let attacks = prop<AttackDefinition list> "Attacks"
+  let attack = attacks >> singleList
   let create name' =
     Map.empty |> set name name'
 
@@ -50,7 +67,8 @@ module Menagerie =
     let json = File.ReadAllText(path)
     JsonConvert.DeserializeObject<Stats> json
 
-Menagerie.save (Creature.create "Shawn" |> Props.set Creature.hp 77)
+Menagerie.save (Creature.create "Shawn" |> Props.set Creature.hp 77 |> Props.set Creature.attack (DataTypes.AttackDefinition.simple "Bite" +4 2 8 +2))
 Menagerie.load "Shawn" |> Menagerie.save
+
 let shawn = Menagerie.load "Shawn"
 shawn |> Props.get Creature.maxHp
