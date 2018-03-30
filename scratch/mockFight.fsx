@@ -21,7 +21,7 @@ module Lens =
 module Props =
   let prop<'t> (propName: string) f =
     Lens.lens
-      (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> (v |> unbox<'t>) | Some v -> failwith "Could not convert %A to %s" v typeof<'t>.GetName() | None -> unchecked.defaultof<'t>)
+      (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> (v |> unbox<'t>) | Some v -> failwithf "Could not convert %A to %s" v (typeof<'t>.Name) | None -> Unchecked.defaultof<'t>)
       (fun v x -> Map.add propName v x)
       f
   let set prop v stats = stats |> Lens.set prop (box v)
