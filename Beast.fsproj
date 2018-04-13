@@ -74,6 +74,8 @@
     <Compile Include="source\Beast.fs" />
     <Compile Include="source\AbstractDungeoneering.fs" />
     <Compile Include="source\dunGen.fs" />
+    <None Include="scratch\Scratch.fsx" />
+    <None Include="scratch\mockFight.fsx" />
     <None Include="Script.fsx" />
     <None Include="scratch\explore.fsx" />
     <None Include="scratch\mockRuleEngine.fsx" />

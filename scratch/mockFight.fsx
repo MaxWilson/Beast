@@ -3,43 +3,48 @@ open System.Collections.Generic
 type Stats = Map<string, obj>
 type Name = string
 #r "Newtonsoft.Json.dll"
-// Lens code based on http://www.fssnip.net/7Pk/title/Polymorphic-lenses by Vesa Karvonen
+// Lens code originally based on http://www.fssnip.net/7Pk/title/Polymorphic-lenses by Vesa Karvonen
 
 type Lens<'s,'t,'a,'b> = ('a -> Option<'b>) -> 's -> Option<'t>
 module Lens =
-  let view l s =
+  let inline view l s =
     let r = ref Unchecked.defaultof<_>
     s |> l (fun a -> r := a; None) |> ignore
     !r
 
   let over l f =
     l (f >> Some) >> function Some t -> t | _ -> failwith "Impossible"
-  let set l b = over l <| fun _ -> b
+  let inline set l b = over l <| fun _ -> b
   let lens get set = fun f s ->
     (get s |> f : Option<_>) |> Option.map (fun f -> set f s)
-
+  let inline constant c = 
+    lens (fun _ -> c) (fun _ v -> v)
 
 module Props =
-  let propBase<'t,'r> (propName: string) fallback f =
+  let propBase<'t> (propName: string) fallback f =
     Lens.lens
       (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> v | _ -> fallback x)
-      (fun (v:'r) x -> Map.add propName (box v) x)
+      (fun (v:'t) x -> Map.add propName (box v) x)
       f
-  let prop<'t, 'r> (propName: string) f =
+  let prop<'t> (propName: string) f =
     Lens.lens
       (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> (v |> unbox<'t>) | Some v -> failwithf "Could not convert %A to %s" v (typeof<'t>.Name) | None -> Unchecked.defaultof<'t>)
-      (fun (v:'r) x -> Map.add propName (box v) x)
+      (fun (v:'t) x -> Map.add propName (box v) x)
       f
   let singleList f =
     Lens.lens
-      (List.head)
+      (fun v -> 
+        match v with
+        | head::_ -> 
+          head 
+        | _ -> 
+          Unchecked.defaultof<_>)
       (fun v _ -> [v])
       f
-  let set prop v stats = stats |> Lens.set prop (box v)
-  let get prop stats = stats |> Lens.view prop
-  let propWithFallback<'t,'r> (propName: string) fallbackLens f =
-    propBase<'t,'r> propName (get fallbackLens) f
-
+  let inline set prop v stats = stats |> Lens.set prop v
+  let inline get prop stats = stats |> Lens.view prop
+  let propWithFallback<'t> (propName: string) fallbackLens f =
+    propBase<'t> propName (get fallbackLens) f
 
 module DataTypes =
   type DieRoll = DieRoll of number: int * dieSize: int | StaticModifier of int
@@ -53,10 +58,10 @@ module DataTypes =
 module Creature =
   open Props
   open DataTypes
-  let name = prop<Name,_> "Name"
-  let maxHp = prop<int,_> "MaxHP"
-  let hp = propWithFallback<int,_> "HP" maxHp
-  let attacks = prop<AttackDefinition list, _> "Attacks"
+  let name = prop<Name> "Name"
+  let maxHp = prop<int> "MaxHP"
+  let hp = propWithFallback<int> "HP" maxHp
+  let attacks = propWithFallback<AttackDefinition list> "Attacks" (Lens.constant [])
   let attack = singleList >> attacks
   let create name' =
     Map.empty |> set name name'
@@ -85,8 +90,8 @@ Map.empty |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bit
 Map.empty |> Props.set Creature.attack (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)
 let shawn = Menagerie.load "Shawn"
 shawn |> Props.get Creature.maxHp
-let shawn = (Creature.create "Shawn" |> Props.set Creature.maxHp 77 |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)])
-let shawn = shawn |> Props.set Creature.maxHp 65
+let shawn = (Creature.create "Shawn" |> Props.set Creature.maxHp 77 |> Props.set Creature.attack (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2))
+let shawn = shawn |> Props.set Creature.maxHp 88
 let shawn = shawn |> Props.set Creature.hp (Props.get Creature.hp shawn)
 shawn |> Props.get Creature.hp
 shawn |> Props.get Creature.maxHp
@@ -98,7 +103,7 @@ do ((1, (2.0, '3')), true)
     |> over (fstL >> sndL >> fstL) (fun x -> x + 3.0 |> string)
     |> printfn "%A"
 shawn |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)]
-shawn |> Props.set (Creature.attacks >> (Lens.lens (fun x -> unbox x |> Seq.head) (fun x _ -> [x]))) (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)
+shawn |> Props.set (Creature.attack) (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)
 
 let s f = 
   Lens.lens
