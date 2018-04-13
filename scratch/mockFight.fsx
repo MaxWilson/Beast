@@ -57,7 +57,7 @@ module Creature =
   let maxHp = prop<int> "MaxHP"
   let hp = propWithFallback<int,_> "HP" maxHp
   let attacks = prop<AttackDefinition list> "Attacks"
-  let attack = attacks >> singleList
+  let attack = singleList >> attacks
   let create name' =
     Map.empty |> set name name'
 
