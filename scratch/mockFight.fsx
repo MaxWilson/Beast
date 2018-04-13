@@ -20,18 +20,26 @@ module Lens =
 
 
 module Props =
+  let propBase<'t,'r> (propName: string) fallback f =
+    Lens.lens
+      (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> v | _ -> fallback x)
+      (fun (v:'r) x -> Map.add propName (box v) x)
+      f
   let prop<'t> (propName: string) f =
     Lens.lens
       (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> (v |> unbox<'t>) | Some v -> failwithf "Could not convert %A to %s" v (typeof<'t>.Name) | None -> Unchecked.defaultof<'t>)
       (fun v x -> Map.add propName v x)
       f
-  let singleList<'t> f =
+  let singleList f =
     Lens.lens
-      (unbox >> List.head<'t>)
+      (List.head)
       (fun v _ -> [v])
       f
   let set prop v stats = stats |> Lens.set prop (box v)
   let get prop stats = stats |> Lens.view prop
+  let propWithFallback<'t,'r> (propName: string) fallbackLens f =
+    propBase<'t,'r> propName (get fallbackLens) f
+
 
 module DataTypes =
   type DieRoll = DieRoll of number: int * dieSize: int | StaticModifier of int
@@ -46,8 +54,8 @@ module Creature =
   open Props
   open DataTypes
   let name = prop<Name> "Name"
-  let hp = prop<int64> "HP"
-  let maxHp = prop<int64> "MaxHP"
+  let maxHp = prop<int> "MaxHP"
+  let hp = propWithFallback<int,_> "HP" maxHp
   let attacks = prop<AttackDefinition list> "Attacks"
   let attack = attacks >> singleList
   let create name' =
@@ -76,9 +84,12 @@ Menagerie.load "Shawn" |> Menagerie.save
 Map.empty |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)]
 Map.empty |> Props.set Creature.attack (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)
 let shawn = Menagerie.load "Shawn"
-shawn |> Props.get Creature.maxHps
-let shawn = (Creature.create "Shawn" |> Props.set Creature.hp 77 |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)])
-
+shawn |> Props.get Creature.maxHp
+let shawn = (Creature.create "Shawn" |> Props.set Creature.maxHp 77 |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)])
+let shawn = shawn |> Props.set Creature.maxHp 65
+let shawn = shawn |> Props.set Creature.hp (Props.get Creature.hp shawn)
+shawn |> Props.get Creature.hp
+shawn |> Props.get Creature.maxHp
 open Lens
 let fstL f = lens fst (fun x (_, y) -> (x, y)) f
 let sndL f = lens snd (fun y (x, _) -> (x, y)) f
