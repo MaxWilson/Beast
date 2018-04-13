@@ -25,10 +25,10 @@ module Props =
       (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> v | _ -> fallback x)
       (fun (v:'r) x -> Map.add propName (box v) x)
       f
-  let prop<'t> (propName: string) f =
+  let prop<'t, 'r> (propName: string) f =
     Lens.lens
       (fun x -> match Map.tryFind propName x with | Some(:? 't as v:obj) -> (v |> unbox<'t>) | Some v -> failwithf "Could not convert %A to %s" v (typeof<'t>.Name) | None -> Unchecked.defaultof<'t>)
-      (fun v x -> Map.add propName v x)
+      (fun (v:'r) x -> Map.add propName (box v) x)
       f
   let singleList f =
     Lens.lens
@@ -53,10 +53,10 @@ module DataTypes =
 module Creature =
   open Props
   open DataTypes
-  let name = prop<Name> "Name"
-  let maxHp = prop<int> "MaxHP"
+  let name = prop<Name,_> "Name"
+  let maxHp = prop<int,_> "MaxHP"
   let hp = propWithFallback<int,_> "HP" maxHp
-  let attacks = prop<AttackDefinition list> "Attacks"
+  let attacks = prop<AttackDefinition list, _> "Attacks"
   let attack = singleList >> attacks
   let create name' =
     Map.empty |> set name name'
