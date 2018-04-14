@@ -83,31 +83,3 @@ module Menagerie =
     let json = File.ReadAllText(path)
     JsonConvert.DeserializeObject<Stats> json
 
-Menagerie.save (Creature.create "Shawn" |> Props.set Creature.hp 77 |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)])
-Menagerie.load "Shawn" |> Menagerie.save
-
-Map.empty |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)]
-Map.empty |> Props.set Creature.attack (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)
-let shawn = Menagerie.load "Shawn"
-shawn |> Props.get Creature.maxHp
-let shawn = (Creature.create "Shawn" |> Props.set Creature.maxHp 77 |> Props.set Creature.attack (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2))
-let shawn = shawn |> Props.set Creature.maxHp 88
-let shawn = shawn |> Props.set Creature.hp (Props.get Creature.hp shawn)
-shawn |> Props.get Creature.hp
-shawn |> Props.get Creature.maxHp
-open Lens
-let fstL f = lens fst (fun x (_, y) -> (x, y)) f
-let sndL f = lens snd (fun y (x, _) -> (x, y)) f
-
-do ((1, (2.0, '3')), true)
-    |> over (fstL >> sndL >> fstL) (fun x -> x + 3.0 |> string)
-    |> printfn "%A"
-shawn |> Props.set Creature.attacks [(DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)]
-shawn |> Props.set (Creature.attack) (DataTypes.AttackDefinition.Simple "Bite" +4 2 8 +2)
-
-let s f = 
-  Lens.lens
-      (unbox >> List.head<'t>)
-      (fun v _ -> [v])
-      f
-attacks >> s
